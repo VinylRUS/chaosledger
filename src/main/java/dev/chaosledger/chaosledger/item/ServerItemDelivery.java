@@ -1,6 +1,7 @@
 package dev.chaosledger.chaosledger.item;
 
 import dev.chaosledger.chaosledger.reward.ItemDelivery;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,7 +32,9 @@ public final class ServerItemDelivery implements ItemDelivery {
         if (player == null) return false;
         Identifier id = parseIdentifier(itemId);
         if (id == null) return false;
-        Item item = BuiltInRegistries.ITEM.get(id);
+        // BuiltInRegistries.ITEM.get(id) returns Optional<Holder.Reference<Item>>;
+        // unwrap to the Item, treating "not registered" as a delivery failure.
+        Item item = BuiltInRegistries.ITEM.get(id).map(Holder.Reference::value).orElse(null);
         if (item == null) return false;
         ItemStack stack = new ItemStack(item, count);
         return player.getInventory().add(stack);

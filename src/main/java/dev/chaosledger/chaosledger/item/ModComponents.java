@@ -1,5 +1,6 @@
 package dev.chaosledger.chaosledger.item;
 
+import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.ByteBufCodecs;
 
@@ -14,21 +15,31 @@ import net.minecraft.network.codec.ByteBufCodecs;
  *   <li>{@code ledger_value} — stored face value in the given currency.</li>
  * </ul>
  *
- * <p>On 26.3 the old {@code StreamCodecs} helper class was merged into
- * {@link ByteBufCodecs}: string codecs come from {@code ByteBufCodecs.UTF_8}
- * and primitive codecs from the matching constant (e.g.
- * {@code ByteBufCodecs.DOUBLE}).</p>
+ * <p>On 26.3 the {@link DataComponentType.Builder} API takes a persistent
+ * {@link Codec} (for save/NBT serialisation) via {@code .persistent(...)} and a
+ * {@code StreamCodec} (for network sync) via {@code .networkSynchronized(...)}.
+ * String network codec is {@link ByteBufCodecs#STRING_UTF8}; the double codec is
+ * {@link ByteBufCodecs#DOUBLE}.</p>
  */
 public final class ModComponents {
 
     private ModComponents() {}
 
     public static final DataComponentType<String> LEDGER_ACCOUNT =
-            DataComponentType.<String>builder().streamCodec(ByteBufCodecs.UTF_8).build();
+            DataComponentType.<String>builder()
+                    .persistent(Codec.STRING)
+                    .networkSynchronized(ByteBufCodecs.STRING_UTF8)
+                    .build();
 
     public static final DataComponentType<String> LEDGER_CURRENCY =
-            DataComponentType.<String>builder().streamCodec(ByteBufCodecs.UTF_8).build();
+            DataComponentType.<String>builder()
+                    .persistent(Codec.STRING)
+                    .networkSynchronized(ByteBufCodecs.STRING_UTF8)
+                    .build();
 
     public static final DataComponentType<Double> LEDGER_VALUE =
-            DataComponentType.<Double>builder().streamCodec(ByteBufCodecs.DOUBLE).build();
+            DataComponentType.<Double>builder()
+                    .persistent(Codec.DOUBLE)
+                    .networkSynchronized(ByteBufCodecs.DOUBLE)
+                    .build();
 }
