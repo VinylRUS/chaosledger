@@ -77,11 +77,21 @@ See [README.md](README.md) for the full tree. The short version:
 
 ### Mappings
 
-The mod uses **Mojang's official names (Mojmap)** for Minecraft 26.3 — and on 26.x
-there is **no `mappings` line in `build.gradle` at all**. Since 26.1 the game ships
-un-obfuscated, so Loom 1.19 consumes Mojang's class/member names natively. Yarn is
-deprecated for the 26.x era, and Parchment is not needed (there is no obfuscation
-to layer over). This matches the official `fabric-example-mod` 26.3 branch exactly.
+The mod uses **Mojang's official names (Mojmap)** for Minecraft 26.3, declared in
+`build.gradle` as `mappings loom.officialMojangMappings()`. Since 26.1 the game ships
+un-obfuscated, so Mojang's class/member names are the canonical standard — Yarn is
+deprecated for the 26.x era, and Parchment is not needed (there is no obfuscation to
+layer over), so we use plain `officialMojangMappings()` rather than `loom.layered { ... }`.
+
+**Why the explicit `mappings` line is required:** the official `fabric-example-mod`
+26.3 branch omits it, but that template calls `splitEnvironmentSourceSets()` in its
+`loom { }` block, which auto-fills the `mappings` configuration. ChaosLedger is
+server-authoritative and does NOT call `splitEnvironmentSourceSets()`, so Loom 1.19
+leaves the `mappings` configuration empty and crashes in `afterEvaluate` with
+`IllegalArgumentException: Configuration 'mappings' has no dependencies`. Declaring
+`mappings loom.officialMojangMappings()` explicitly is the fix — on 26.x it is a no-op
+for naming (the names already match), but it satisfies Loom's requirement. Do not
+remove that line.
 
 **Build toolchain:** Gradle 9.8.2 + Loom 1.19-SNAPSHOT + JDK 25. Gradle 8.x cannot
 read Java 25 class files and crashes with `Unsupported class file major version 69`

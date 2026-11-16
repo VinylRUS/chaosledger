@@ -34,15 +34,25 @@ loom {
 }
 
 dependencies {
-    // Minecraft 26.x ships UN-OBFUSCATED (since 26.1), so Loom 1.19 consumes
-    // Mojang's official class/member names natively. There is NO mappings line —
-    // no `loom.officialMojangMappings()`, no `loom.layered { ... }`, no Parchment,
-    // no yarn_mappings property. Yarn is deprecated for 26.x. This matches the
-    // official fabric-example-mod 26.3 branch exactly.
+    // Minecraft 26.x ships UN-OBFUSCATED (since 26.1), so Mojang's official names
+    // are the canonical standard — Yarn is deprecated for 26.x and Parchment is
+    // not needed (there is no obfuscation to layer over). We use plain
+    // `loom.officialMojangMappings()` rather than `loom.layered { ... }`.
+    //
+    // WHY the explicit `mappings` line is required here (even though the official
+    // fabric-example-mod 26.3 omits it): that template calls `splitEnvironmentSourceSets()`
+    // in its `loom { }` block, which auto-configures the `mappings` configuration.
+    // ChaosLedger is server-authoritative and does NOT call splitEnvironmentSourceSets(),
+    // so Loom 1.19 leaves the `mappings` configuration empty and then crashes in
+    // afterEvaluate with:
+    //     `IllegalArgumentException: Configuration 'mappings' has no dependencies`
+    // The fix is to declare the mapping explicitly. On 26.x this is a no-op for
+    // naming (the names already match), but it satisfies Loom's requirement.
     //
     // Scope note: on 26.x the official template uses plain `implementation`
     // (not `modImplementation`) for loader + fabric-api.
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     // Fabric API
