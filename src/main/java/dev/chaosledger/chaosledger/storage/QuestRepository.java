@@ -69,10 +69,9 @@ public final class QuestRepository {
             ps.setString(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    connection.commit();
+                    // SELECT-only: no commit().
                     return Optional.of(map(rs));
                 }
-                connection.commit();
                 return Optional.empty();
             }
         } catch (SQLException e) {
@@ -89,7 +88,7 @@ public final class QuestRepository {
             while (rs.next()) {
                 out.add(map(rs));
             }
-            connection.commit();
+            // SELECT-only: no commit().
             return out;
         } catch (SQLException e) {
             rollback();

@@ -65,10 +65,9 @@ public final class QuestProgressRepository {
             ps.setString(2, questId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    connection.commit();
+                    // SELECT-only: no commit().
                     return Optional.of(map(rs));
                 }
-                connection.commit();
                 return Optional.empty();
             }
         } catch (SQLException e) {
@@ -87,7 +86,7 @@ public final class QuestProgressRepository {
                     out.add(map(rs));
                 }
             }
-            connection.commit();
+            // SELECT-only: no commit().
             return out;
         } catch (SQLException e) {
             rollback();

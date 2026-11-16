@@ -74,10 +74,9 @@ public final class AccountRepository {
             ps.setString(2, currency);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    connection.commit();
+                    // SELECT-only: no commit() — reads must not advance the write tx.
                     return Optional.of(map(rs));
                 }
-                connection.commit();
                 return Optional.empty();
             }
         } catch (SQLException e) {
@@ -96,7 +95,7 @@ public final class AccountRepository {
                     out.add(map(rs));
                 }
             }
-            connection.commit();
+            // SELECT-only: no commit().
             return out;
         } catch (SQLException e) {
             rollback();
@@ -115,7 +114,7 @@ public final class AccountRepository {
                     out.add(map(rs));
                 }
             }
-            connection.commit();
+            // SELECT-only: no commit().
             return out;
         } catch (SQLException e) {
             rollback();
@@ -131,7 +130,7 @@ public final class AccountRepository {
             while (rs.next()) {
                 out.add(map(rs));
             }
-            connection.commit();
+            // SELECT-only: no commit().
             return out;
         } catch (SQLException e) {
             rollback();
@@ -139,8 +138,12 @@ public final class AccountRepository {
         }
     }
 
-    /** Package-private: only the ledger service should call this. */
-    void updateBalance(Account account) {
+    /**
+     * Persists a new balance for the account. Public because the
+     * {@link dev.chaosledger.chaosledger.economy.EconomyEngine} (in a different
+     * package) must update balances atomically with the matching ledger row.
+     */
+    public void updateBalance(Account account) {
         String sql = "UPDATE accounts SET balance = ?, owner_name = ?, updated_at = ? WHERE id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setDouble(1, account.balance().amount());

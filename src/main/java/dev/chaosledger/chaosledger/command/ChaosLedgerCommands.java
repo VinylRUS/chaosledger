@@ -13,8 +13,10 @@ import dev.chaosledger.chaosledger.economy.Transaction;
 import dev.chaosledger.chaosledger.quest.QuestException;
 import dev.chaosledger.chaosledger.quest.QuestProgress;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.Permissions;
 
 import java.util.UUID;
 
@@ -74,7 +76,7 @@ public final class ChaosLedgerCommands {
                                 .then(argument("questId", StringArgumentType.word())
                                         .executes(ctx -> questProgress(ctx, StringArgumentType.getString(ctx, "questId"))))))
                 .then(literal("admin")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(Commands.hasPermission(Permissions.COMMANDS_GAMEMASTER))
                         .then(literal("grant")
                                 .then(argument("player", StringArgumentType.word())
                                         .then(argument("amount", DoubleArgumentType.doubleArg(0.01d))

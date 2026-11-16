@@ -1,24 +1,28 @@
 package dev.chaosledger.chaosledger.economy;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Immutable record of a single ledger movement.
  *
- * <p>Either {@code fromUuid} or {@code toUuid} can be {@code null} to represent
+ * <p>Either {@code fromUuid} or {@code toUuid} can be empty to represent
  * minting / burning (rewards, fees, admin adjustments), but never both at the
  * same time. The {@code reason} is a short human-readable string used in chat
  * and the web panel; {@code category} is a machine-readable tag
  * ({@code PAY}, {@code REWARD}, {@code QUEST}, {@code ADMIN}, {@code FEE}).</p>
  */
-public record Transaction(long id, UUID fromUuid, UUID toUuid, Money amount,
-                          String reason, String category, String reference,
+public record Transaction(long id, Optional<UUID> fromUuid, Optional<UUID> toUuid, Money amount,
+                          String reason, String category, Optional<String> reference,
                           long createdAt) {
 
     public Transaction {
-        if (fromUuid == null && toUuid == null) {
-            throw new IllegalArgumentException("fromUuid and toUuid cannot both be null");
+        Objects.requireNonNull(fromUuid, "fromUuid");
+        Objects.requireNonNull(toUuid, "toUuid");
+        Objects.requireNonNull(reference, "reference");
+        if (fromUuid.isEmpty() && toUuid.isEmpty()) {
+            throw new IllegalArgumentException("fromUuid and toUuid cannot both be empty");
         }
         if (reason == null || reason.isBlank()) {
             throw new IllegalArgumentException("reason must not be blank");
@@ -28,7 +32,10 @@ public record Transaction(long id, UUID fromUuid, UUID toUuid, Money amount,
         }
     }
 
-    public Optional<UUID> fromUuid()  { return Optional.ofNullable(fromUuid); }
-    public Optional<UUID> toUuid()    { return Optional.ofNullable(toUuid); }
-    public Optional<String> reference() { return Optional.ofNullable(reference); }
+    /** Convenience constructor wrapping nullable primitives into {@link Optional}. */
+    public Transaction(long id, UUID fromUuid, UUID toUuid, Money amount,
+                       String reason, String category, String reference, long createdAt) {
+        this(id, Optional.ofNullable(fromUuid), Optional.ofNullable(toUuid), amount,
+                reason, category, Optional.ofNullable(reference), createdAt);
+    }
 }

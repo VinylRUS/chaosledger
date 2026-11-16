@@ -32,8 +32,8 @@ public final class TransactionRepository {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (PreparedStatement ps = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, tx.fromUuid() == null ? null : tx.fromUuid().get().toString());
-            ps.setString(2, tx.toUuid() == null ? null : tx.toUuid().get().toString());
+            ps.setString(1, tx.fromUuid().map(UUID::toString).orElse(null));
+            ps.setString(2, tx.toUuid().map(UUID::toString).orElse(null));
             ps.setString(3, tx.amount().currency());
             ps.setDouble(4, tx.amount().amount());
             ps.setString(5, tx.reason());
@@ -74,7 +74,7 @@ public final class TransactionRepository {
                     out.add(map(rs));
                 }
             }
-            connection.commit();
+            // SELECT-only: no commit().
             return out;
         } catch (SQLException e) {
             rollback();
@@ -99,7 +99,7 @@ public final class TransactionRepository {
                     out.add(map(rs));
                 }
             }
-            connection.commit();
+            // SELECT-only: no commit().
             return out;
         } catch (SQLException e) {
             rollback();

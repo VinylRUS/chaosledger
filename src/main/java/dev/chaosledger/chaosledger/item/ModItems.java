@@ -3,7 +3,7 @@ package dev.chaosledger.chaosledger.item;
 import dev.chaosledger.chaosledger.economy.Money;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -25,7 +25,7 @@ public final class ModItems {
 
     private ModItems() {}
 
-    public static final ResourceLocation LEDGER_COIN_ID = ResourceLocation.parse("chaosledger:ledger_coin");
+    public static final Identifier LEDGER_COIN_ID = Identifier.fromNamespaceAndPath("chaosledger", "ledger_coin");
     public static Item LEDGER_COIN;
 
     /** Register the items. Called by the Fabric entrypoint on the bootstrap phase. */
@@ -36,11 +36,11 @@ public final class ModItems {
 
         // Register the data components.
         Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,
-                ResourceLocation.parse("chaosledger:ledger_account"), ModComponents.LEDGER_ACCOUNT);
+                Identifier.fromNamespaceAndPath("chaosledger", "ledger_account"), ModComponents.LEDGER_ACCOUNT);
         Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,
-                ResourceLocation.parse("chaosledger:ledger_currency"), ModComponents.LEDGER_CURRENCY);
+                Identifier.fromNamespaceAndPath("chaosledger", "ledger_currency"), ModComponents.LEDGER_CURRENCY);
         Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,
-                ResourceLocation.parse("chaosledger:ledger_value"), ModComponents.LEDGER_VALUE);
+                Identifier.fromNamespaceAndPath("chaosledger", "ledger_value"), ModComponents.LEDGER_VALUE);
     }
 
     /** Build a ledger coin stack bound to {@code playerUuid} carrying {@code value}. */

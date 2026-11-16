@@ -66,7 +66,7 @@ public final class CurrencyRepository {
                         rs.getString("symbol"),
                         rs.getDouble("default_starting")));
             }
-            connection.commit();
+            // SELECT-only: no commit().
         } catch (SQLException e) {
             rollback();
             throw new StorageException("Failed to list currencies", e);
