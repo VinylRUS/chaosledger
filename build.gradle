@@ -17,10 +17,7 @@ base {
 
 repositories {
     mavenCentral()
-    // Additional repositories (maven.fabricmc.net is added by Loom automatically)
-    maven { url = 'https://maven.fabricmc.net/' }
-    // ParchmentMC — used for parameter names + javadoc layered on top of Mojang official mappings.
-    maven { url = 'https://maven.parchmentmc.org/' }
+    // maven.fabricmc.net is added by Loom automatically.
 }
 
 loom {
@@ -35,28 +32,19 @@ loom {
 }
 
 dependencies {
-    // Minecraft, Mojang official mappings (Mojmap) and Fabric Loader come from Loom.
-    // Mojmap is preferred over Yarn for an authoritative server-side mod: it uses
-    // Mojang's official names, matches vanilla source 1:1, and removes ambiguity
-    // for maintainers reading the decompiled game code.
+    // Minecraft 26.x ships UN-OBFUSCATED (since 26.1), so Loom 1.19 consumes
+    // Mojang's official class/member names natively. There is NO mappings line —
+    // no `loom.officialMojangMappings()`, no `loom.layered { ... }`, no Parchment,
+    // no yarn_mappings property. Yarn is deprecated for 26.x. This matches the
+    // official fabric-example-mod 26.3 branch exactly.
     //
-    // Parchment is layered on top of Mojmap to provide human-readable parameter
-    // names and javadoc — without it, every parameter would be a stub like `p_123456_`.
-    //
-    // NOTE: Yarn is deprecated for Minecraft 26.x (the game ships un-obfuscated
-    // since 26.1, so Mojang names are the canonical standard). Mojmap is the only
-    // forward-looking choice. If Parchment has not yet published a 26.3 build,
-    // either fall back to plain `loom.officialMojangMappings()` or pin to the
-    // latest 1.21.x parchment build that resolves against 26.3's merged jar.
+    // Scope note: on 26.x the official template uses plain `implementation`
+    // (not `modImplementation`) for loader + fabric-api.
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.layered() {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${project.minecraft_version}:${project.parchment_build}@zip")
-    }
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     // Fabric API
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
     // Gson is shipped with the Minecraft distribution (com.google.gson) - no extra dependency needed.
 

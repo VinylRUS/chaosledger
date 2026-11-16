@@ -136,23 +136,23 @@ curl -X POST http://127.0.0.1:8775/api/transactions/grant \
 
 ## Частые проблемы
 
-- **`Could not resolve net.fabricmc:fabric-loom:1.17.5`** — версия Loom ещё не опубликована
-  под Minecraft 26.3. Проверьте `https://maven.fabricmc.net/net/fabricmc/fabric-loom/` и
-  подставьте актуальный номер в `gradle.properties` → `loom_version`.
+- **`Unsupported class file major version 69` / `BUG! exception in phase 'semantic analysis'`** —
+  Gradle 8.x не умеет читать Java 25 class files (major version 69). Wrapper должен быть
+  **Gradle 9.4+** (в проекте зафиксирован 9.8.2). Проверьте `gradle/wrapper/gradle-wrapper.properties`
+  → `distributionUrl=...gradle-9.8.2-bin.zip`. Если вы обновили wrapper вручную через
+  `gradle wrapper --gradle-version X`, убедитесь что X ≥ 9.4. Это **самая частая ошибка**
+  при первом запуске сборки на JDK 25.
+- **`Could not resolve net.fabricmc:fabric-loom:1.19-SNAPSHOT`** — версия Loom ещё не опубликована
+  или SNAPSHOT-репозиторий недоступен. Проверьте `https://maven.fabricmc.net/net/fabricmc/fabric-loom/`
+  и подставьте актуальный номер в `gradle.properties` → `loom_version` (для 26.x это `1.19-SNAPSHOT`
+  согласно [fabricmc.net/develop](https://fabricmc.net/develop)).
 - **`Could not resolve net.fabricmc.fabric-api:fabric-api:...`** — то же самое для Fabric API.
-  См. `https://modrinth.com/mod/fabric-api/versions`.
-- **Mojang mappings (`loom.layered() { officialMojangMappings(); parchment(...) }`)** —
-  Loom сам скачивает их с `maven.minecraft.net` (архив `client.txt` + маппинги). Если
-  загрузка падает на свежей версии MC, убедитесь, что `minecraft_version` в
-  `gradle.properties` совпадает с опубликованной версией на
-  `https://maven.minecraft.net/net/minecraft/client/`. Никакой ручной `yarn_mappings`
-  не нужен.
-- **Parchment не резолвится (`Could not resolve org.parchmentmc.data:parchment-26.3:...`)** —
-  для 26.3 ещё не опубликована сборка Parchment. Проверьте
-  `https://maven.parchmentmc.org/org/parchmentmc/data/parchment-26.3/` и подставьте
-  актуальный build в `parchment_build`, либо **закомментируйте строку `parchment(...)`
-  в `build.gradle`**, чтобы откатиться на чистый Mojmap (имена параметров будут
-  заглушками `p_123456_`, но сборка пройдёт).
+  См. `https://modrinth.com/mod/fabric-api/versions`. Обратите внимание: свойство в
+  `gradle.properties` называется `fabric_api_version` (с подчёркиванием), а не `fabric_version`.
+- **Mappings / Yarn** — для Minecraft 26.x **строка mappings в `build.gradle` не нужна**:
+  26.x поставляется разнеобфусцированным (с 26.1), Loom 1.19 потребляет Mojang names нативно.
+  Не добавляйте `loom.officialMojangMappings()`, `loom.layered { ... }` или `yarn_mappings` —
+  это вызовет ошибку. Yarn устарел для 26.x.
 - **SQLite: `org.sqlite.JDBC is not on the classpath`** — на standalone-запуске
   обязательно добавьте `sqlite-jdbc` в classpath (внутри Fabric-сервера он встроен
   через `include` в `build.gradle`).
