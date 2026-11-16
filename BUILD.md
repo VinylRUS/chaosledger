@@ -9,7 +9,7 @@
 ## Шаг 1. Получить исходники
 
 ```bash
-git clone https://github.com/OWNER/chaosledger.git
+git clone https://github.com/VinylRUS/chaosledger.git
 cd chaosledger
 ```
 
@@ -20,8 +20,12 @@ cd chaosledger
 репо до того, как он был закоммичен), сгенерируйте его:
 
 ```bash
-gradle wrapper --gradle-version 8.14 --distribution-type bin
+gradle wrapper --gradle-version 9.8.2 --distribution-type bin
 ```
+
+> **Важно:** версия wrapper должна быть **Gradle 9.4+** (в проекте зафиксирован 9.8.2).
+> Gradle 8.x не умеет читать Java 25 class files и падает с
+> `Unsupported class file major version 69`.
 
 Проверьте, что wrapper работает:
 

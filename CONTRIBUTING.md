@@ -15,7 +15,7 @@ be precise, assume good intent.
 ## Quick start
 
 ```bash
-git clone https://github.com/OWNER/chaosledger.git
+git clone https://github.com/VinylRUS/chaosledger.git
 cd chaosledger
 
 # JDK 25 is required (the mod targets Java 25).
@@ -26,9 +26,10 @@ java -version
 ./gradlew build
 ```
 
-The first build downloads Minecraft, Mojang official mappings (Mojmap) and Fabric API
-through Loom — be patient and stay online. The resulting jar is in
-`build/libs/chaosledger-<version>.jar`.
+The first build downloads Minecraft 26.3 and Fabric API through Loom (no separate
+mappings download — 26.x ships un-obfuscated, so Loom's debof path reads Mojang
+names straight from `client.jar`). Be patient and stay online. The resulting jar is
+in `build/libs/chaosledger-<version>.jar`.
 
 ## Repository layout
 
@@ -118,7 +119,7 @@ When porting code from an older Yarn-based mod, the common renames are:
 | `net.minecraft.item.Item` / `Items` / `ItemStack` | `net.minecraft.world.item.*` |
 | `net.minecraft.registry.Registries` | `net.minecraft.core.registries.BuiltInRegistries` |
 | `net.minecraft.component.ComponentType` | `net.minecraft.core.component.DataComponentType` |
-| `net.minecraft.network.codec.PacketCodecs` | `net.minecraft.network.codec.StreamCodecs` |
+| `net.minecraft.network.codec.PacketCodecs` | `net.minecraft.network.codec.ByteBufCodecs` |
 
 If a name is ambiguous, **say so** in the PR description rather than guessing —
 we will verify against the decompiled game code before merging.
