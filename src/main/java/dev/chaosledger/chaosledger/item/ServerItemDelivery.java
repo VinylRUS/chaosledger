@@ -2,7 +2,7 @@ package dev.chaosledger.chaosledger.item;
 
 import dev.chaosledger.chaosledger.reward.ItemDelivery;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -29,9 +29,26 @@ public final class ServerItemDelivery implements ItemDelivery {
     public boolean deliver(UUID playerUuid, String itemId, int count) {
         ServerPlayer player = playerLookup.apply(playerUuid);
         if (player == null) return false;
-        Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(itemId));
+        Identifier id = parseIdentifier(itemId);
+        if (id == null) return false;
+        Item item = BuiltInRegistries.ITEM.get(id);
         if (item == null) return false;
         ItemStack stack = new ItemStack(item, count);
         return player.getInventory().add(stack);
+    }
+
+    /**
+     * Parse a {@code "namespace:path"} string into an {@link Identifier}.
+     * Returns {@code null} if the string is not a valid namespaced id (so the
+     * caller can fall back to a money grant). The {@code namespace} part is
+     * optional and defaults to {@code minecraft}.
+     */
+    private static Identifier parseIdentifier(String raw) {
+        if (raw == null || raw.isEmpty()) return null;
+        int colon = raw.indexOf(':');
+        String namespace = colon < 0 ? "minecraft" : raw.substring(0, colon);
+        String path = colon < 0 ? raw : raw.substring(colon + 1);
+        if (namespace.isEmpty() || path.isEmpty()) return null;
+        return Identifier.fromNamespaceAndPath(namespace, path);
     }
 }

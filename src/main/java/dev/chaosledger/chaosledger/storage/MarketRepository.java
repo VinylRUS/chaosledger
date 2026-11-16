@@ -70,10 +70,9 @@ public final class MarketRepository {
             ps.setString(1, itemId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    connection.commit();
+                    // SELECT-only: no commit().
                     return Optional.of(map(rs));
                 }
-                connection.commit();
                 return Optional.empty();
             }
         } catch (SQLException e) {
@@ -93,7 +92,7 @@ public final class MarketRepository {
                     out.add(item);
                 }
             }
-            connection.commit();
+            // SELECT-only: no commit().
             return out;
         } catch (SQLException e) {
             rollback();
@@ -112,7 +111,7 @@ public final class MarketRepository {
                     out.add(new double[]{rs.getDouble("price"), rs.getLong("recorded_at")});
                 }
             }
-            connection.commit();
+            // SELECT-only: no commit().
             return out;
         } catch (SQLException e) {
             rollback();

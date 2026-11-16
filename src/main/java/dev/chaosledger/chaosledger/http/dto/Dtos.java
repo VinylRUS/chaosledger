@@ -46,8 +46,8 @@ public final class Dtos {
     public record TransactionDto(long id, UUID fromUuid, UUID toUuid, MoneyDto amount,
                                  String reason, String category, String reference, long createdAt) {
         public static TransactionDto of(Transaction t) {
-            return new TransactionDto(t.id(), t.fromUuid() == null ? null : t.fromUuid().get(),
-                    t.toUuid() == null ? null : t.toUuid().get(),
+            return new TransactionDto(t.id(), t.fromUuid().orElse(null),
+                    t.toUuid().orElse(null),
                     MoneyDto.of(t.amount()), t.reason(), t.category(),
                     t.reference().orElse(null), t.createdAt());
         }
@@ -102,7 +102,7 @@ public final class Dtos {
     public record AuditEntryDto(long id, UUID actorUuid, String actorName, String action,
                                String target, String payloadJson, long createdAt) {
         public static AuditEntryDto of(AuditEntry e) {
-            return new AuditEntryDto(e.id(), e.actorUuid() == null ? null : e.actorUuid().get(),
+            return new AuditEntryDto(e.id(), e.actorUuid().orElse(null),
                     e.actorName().orElse(null), e.action(), e.target().orElse(null),
                     e.payloadJson().orElse(null), e.createdAt());
         }

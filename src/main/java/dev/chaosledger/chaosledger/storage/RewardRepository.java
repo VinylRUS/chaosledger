@@ -62,11 +62,16 @@ public final class RewardRepository {
                     out.add(gson.fromJson(rs.getString("reward_json"), Reward.class));
                 }
             }
-            connection.commit();
+            // SELECT-only: no commit() — read queries must not advance the write
+            // transaction. See task #3 in the Qwen review.
             return out;
         } catch (SQLException e) {
             rollback();
             throw new StorageException("Failed to list reward grants for " + playerUuid, e);
         }
+    }
+
+    private void rollback() {
+        try { connection.rollback(); } catch (SQLException ignore) {}
     }
 }

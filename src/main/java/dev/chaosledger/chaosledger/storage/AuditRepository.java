@@ -25,7 +25,7 @@ public final class AuditRepository {
     public long record(AuditEntry entry) {
         String sql = "INSERT INTO audit_log(actor_uuid, actor_name, action, target, payload_json, created_at) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, entry.actorUuid() == null ? null : entry.actorUuid().get().toString());
+            ps.setString(1, entry.actorUuid().map(UUID::toString).orElse(null));
             ps.setString(2, entry.actorName().orElse(null));
             ps.setString(3, entry.action());
             ps.setString(4, entry.target().orElse(null));
@@ -57,7 +57,7 @@ public final class AuditRepository {
                     out.add(map(rs));
                 }
             }
-            connection.commit();
+            // SELECT-only: no commit().
             return out;
         } catch (SQLException e) {
             rollback();
@@ -76,7 +76,7 @@ public final class AuditRepository {
                     out.add(map(rs));
                 }
             }
-            connection.commit();
+            // SELECT-only: no commit().
             return out;
         } catch (SQLException e) {
             rollback();

@@ -1,7 +1,7 @@
 package dev.chaosledger.chaosledger.item;
 
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.network.codec.StreamCodecs;
+import net.minecraft.network.codec.ByteBufCodecs;
 
 /**
  * Data-component types registered by ChaosLedger.
@@ -14,21 +14,21 @@ import net.minecraft.network.codec.StreamCodecs;
  *   <li>{@code ledger_value} — stored face value in the given currency.</li>
  * </ul>
  *
- * <p>The builder uses Mojang official mappings (mojmap): {@link DataComponentType}
- * + {@link StreamCodecs}. If the 26.3 build still rejects a symbol, the most
- * likely drift is in {@code StreamCodecs.UTF_8} vs {@code StreamCodecs.STRING}
- * — try the other one and rebuild.</p>
+ * <p>On 26.3 the old {@code StreamCodecs} helper class was merged into
+ * {@link ByteBufCodecs}: string codecs come from {@code ByteBufCodecs.UTF_8}
+ * and primitive codecs from the matching constant (e.g.
+ * {@code ByteBufCodecs.DOUBLE}).</p>
  */
 public final class ModComponents {
 
     private ModComponents() {}
 
     public static final DataComponentType<String> LEDGER_ACCOUNT =
-            DataComponentType.<String>builder().streamCodec(StreamCodecs.UTF_8).build();
+            DataComponentType.<String>builder().streamCodec(ByteBufCodecs.UTF_8).build();
 
     public static final DataComponentType<String> LEDGER_CURRENCY =
-            DataComponentType.<String>builder().streamCodec(StreamCodecs.UTF_8).build();
+            DataComponentType.<String>builder().streamCodec(ByteBufCodecs.UTF_8).build();
 
     public static final DataComponentType<Double> LEDGER_VALUE =
-            DataComponentType.<Double>builder().streamCodec(StreamCodecs.DOUBLE).build();
+            DataComponentType.<Double>builder().streamCodec(ByteBufCodecs.DOUBLE).build();
 }
