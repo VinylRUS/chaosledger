@@ -21,9 +21,11 @@ repositories {
 }
 
 loom {
-    // Split client/server sources are not required for a server-authoritative mod,
-    // but Loom still wants the mixin/refmap config if present. We keep it minimal.
-    splitEnvironmentSourceSets = false
+    // ChaosLedger is server-authoritative — there is no client-side source set.
+    // We do NOT call splitEnvironmentSourceSets() (that is the Loom 1.19 method
+    // which ENABLES split; the old `splitEnvironmentSourceSets = false` property
+    // syntax does not exist on LoomGradleExtensionImpl and throws
+    // MissingPropertyException). The default (no split) is exactly what we want.
     mods {
         "chaosledger" {
             sourceSet sourceSets.main
