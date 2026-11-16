@@ -149,10 +149,19 @@ curl -X POST http://127.0.0.1:8775/api/transactions/grant \
 - **`Could not resolve net.fabricmc.fabric-api:fabric-api:...`** — то же самое для Fabric API.
   См. `https://modrinth.com/mod/fabric-api/versions`. Обратите внимание: свойство в
   `gradle.properties` называется `fabric_api_version` (с подчёркиванием), а не `fabric_version`.
-- **Mappings / Yarn** — для Minecraft 26.x **строка mappings в `build.gradle` не нужна**:
-  26.x поставляется разнеобфусцированным (с 26.1), Loom 1.19 потребляет Mojang names нативно.
-  Не добавляйте `loom.officialMojangMappings()`, `loom.layered { ... }` или `yarn_mappings` —
-  это вызовет ошибку. Yarn устарел для 26.x.
+- **`Configuration 'mappings' has no dependencies`** (RuntimeException в `afterEvaluate`,
+  `CompileConfiguration.provideMinecraft`) — в `build.gradle` отсутствует строка
+  `mappings loom.officialMojangMappings()`. Loom 1.19 оставляет конфигурацию `mappings`
+  пустой, если в `loom { }` не вызван `splitEnvironmentSourceSets()` (а у нас не вызван —
+  мод сервер-авторитативный, без client source set). Канонический `fabric-example-mod`
+  26.3 строку mappings опускает, но он вызывает `splitEnvironmentSourceSets()`, что и
+  заполняет конфигурацию неявно. **Решение:** в блоке `dependencies { }` должна быть строка
+  `mappings loom.officialMojangMappings()` (она уже там есть — не удаляйте её). Yarn для
+  26.x устарел, Parchment не нужен (нет обфускации, которую покрывать).
+- **Mappings / Yarn** — на 26.x используйте **только** `loom.officialMojangMappings()` (имена
+  Mojang, совпадают с vanilla 1:1). Не используйте `loom.layered { ... }` с Parchment для 26.x
+  (Parchment для 26.3 ещё не опубликован и не нужен — игра разнеобфусцирована с 26.1). Yarn
+  устарел для 26.x. Строка `mappings` обязательна при non-split конфигурации (см. пункт выше).
 - **SQLite: `org.sqlite.JDBC is not on the classpath`** — на standalone-запуске
   обязательно добавьте `sqlite-jdbc` в classpath (внутри Fabric-сервера он встроен
   через `include` в `build.gradle`).
