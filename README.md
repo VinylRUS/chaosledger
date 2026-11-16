@@ -166,17 +166,18 @@ Pre-release можно запустить вручную из вкладки *Ac
 - `fabric_api_version=0.166.2+26.3`
 - `java_version=25`
 - **Gradle wrapper: 9.8.2** (Gradle 8.x не умеет читать Java 25 class files → `Unsupported class file major version 69`)
-- mappings: **`loom.officialMojangMappings()`** — имена Mojang (26.x разнеобфусцирован, Yarn устарел, Parchment не нужен)
+- mappings: **нет строки mappings** — Loom активирует debof-путь через `fabric.loom.disableObfuscation=true` (26.x разнеобфусцирован, Mojang mappings больше не публикуются)
 
-> Minecraft 26.x уже поставляется разнеобфусцированным (с 26.1), поэтому **Yarn
-> устарел** и больше не обновляется, а Parchment для 26.x не нужен (нет обфускации,
-> которую покрывать). Имена Mojang — канонический стандарт. В `build.gradle` объявлена
-> `mappings loom.officialMojangMappings()` (а не `loom.layered { ... }` с Parchment).
-> Технически канонический `fabric-example-mod` 26.3 строку mappings опускает, но он
-> вызывает `splitEnvironmentSourceSets()` в `loom { }`, что заполняет конфигурацию
-> mappings неявно. ChaosLedger — сервер-авторитативный мод без client source set,
-> поэтому `splitEnvironmentSourceSets()` не вызывается, и строка `mappings` обязательна
-> (иначе Loom падает с `Configuration 'mappings' has no dependencies`).
+> Minecraft 26.x поставляется разнеобфусцированным (с 1.21.11 snapshots, cutoff
+> 2025-11-01), поэтому **Yarn устарел**, Parchment не нужен, а главное — **Mojang
+> больше не публикует `client_mappings` ProGuard-файл** в version manifest. Из-за
+> этого `mappings loom.officialMojangMappings()` в `build.gradle` падает с
+> `Failed to find official mojang mappings for 26.3`. Вместо этого в
+> `gradle.properties` стоит флаг `fabric.loom.disableObfuscation=true` — он
+> переключает Loom на "debof" (de-obfuscated) код-путь, который пропускает
+> mappings/remap-пайплайн целиком и использует Mojang names нативно (Loom сам
+> читает классы из разнеобфусцированного client.jar 26.3). Это единственный
+> рабочий вариант для 26.3 на Loom 1.19.
 >
 > Версии Fabric API/Loom для MC 26.3 могут быть ещё не опубликованы в момент первого
 > релиза. Если сборка падает с ошибкой резолва зависимости — подставьте актуальные

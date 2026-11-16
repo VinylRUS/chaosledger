@@ -77,25 +77,31 @@ See [README.md](README.md) for the full tree. The short version:
 
 ### Mappings
 
-The mod uses **Mojang's official names (Mojmap)** for Minecraft 26.3, declared in
-`build.gradle` as `mappings loom.officialMojangMappings()`. Since 26.1 the game ships
-un-obfuscated, so Mojang's class/member names are the canonical standard — Yarn is
-deprecated for the 26.x era, and Parchment is not needed (there is no obfuscation to
-layer over), so we use plain `officialMojangMappings()` rather than `loom.layered { ... }`.
+The mod uses **Mojang's official names (Mojmap)** for Minecraft 26.3, consumed natively
+by Loom's "debof" (de-obfuscated) code path. There is **NO `mappings` line in
+`build.gradle`** — and there must not be one on 26.x.
 
-**Why the explicit `mappings` line is required:** the official `fabric-example-mod`
-26.3 branch omits it, but that template calls `splitEnvironmentSourceSets()` in its
-`loom { }` block, which auto-fills the `mappings` configuration. ChaosLedger is
-server-authoritative and does NOT call `splitEnvironmentSourceSets()`, so Loom 1.19
-leaves the `mappings` configuration empty and crashes in `afterEvaluate` with
-`IllegalArgumentException: Configuration 'mappings' has no dependencies`. Declaring
-`mappings loom.officialMojangMappings()` explicitly is the fix — on 26.x it is a no-op
-for naming (the names already match), but it satisfies Loom's requirement. Do not
-remove that line.
+Here is why. Since 1.21.11 snapshots (release-time cutoff 2025-11-01) the game ships
+un-obfuscated, so Mojang's class/member names are the canonical standard. Yarn is
+deprecated for the 26.x era, and Parchment is not needed (no obfuscation to layer over).
+Crucially, **Mojang no longer publishes `client_mappings` ProGuard files** in the
+version manifest for 26.x — the 26.3 manifest has only `client` and `server` jars.
+So `mappings loom.officialMojangMappings()` would throw
+`Failed to find official mojang mappings for 26.3`, and `loom.layered { ... }` with
+Parchment is both broken (no client_mappings) and unnecessary.
 
-**Build toolchain:** Gradle 9.8.2 + Loom 1.19-SNAPSHOT + JDK 25. Gradle 8.x cannot
-read Java 25 class files and crashes with `Unsupported class file major version 69`
-— do not downgrade the wrapper below 9.4.
+Instead, Loom's debof path is activated by the Gradle property
+`fabric.loom.disableObfuscation=true` in `gradle.properties`. That flips
+`disableObfuscation()` to true, and `CompileConfiguration.provideMinecraft()` then
+skips the MAPPINGS configuration entirely (it consults the optional ANNOTATIONS
+config instead, which is empty and fine). Loom reads Mojang names straight out of
+the un-obfuscated client.jar. Do not remove that property, and do not add a
+`mappings` line to `build.gradle` — both will break the build.
+
+**Build toolchain:** Gradle 9.8.2 + Loom 1.19-SNAPSHOT + JDK 25 +
+`fabric.loom.disableObfuscation=true`. Gradle 8.x cannot read Java 25 class files
+and crashes with `Unsupported class file major version 69` — do not downgrade the
+wrapper below 9.4.
 
 When porting code from an older Yarn-based mod, the common renames are:
 
