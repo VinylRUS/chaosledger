@@ -1,0 +1,61 @@
+name: ✨ Feature request
+description: Suggest an idea or improvement for ChaosLedger
+title: "[FEAT] <short summary>"
+labels: ["enhancement", "triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is currently missing or hard to do?
+      placeholder: "I cannot see a price history chart in-game, only via the HTTP API."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What would you like ChaosLedger to do instead?
+      placeholder: "Add a /cl market history <itemId> command that prints the last 10 price points."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      placeholder: "I could query the HTTP API directly, but in-game access would be much faster."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - economy
+        - market / pricing
+        - quests
+        - rewards
+        - audit
+        - http api
+        - commands
+        - gui
+        - items / data components
+        - storage / persistence
+        - build / ci
+        - documentation
+        - other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues and did not find a duplicate.
+          required: true
+        - label: This is not a bug report (use the Bug report template for that).
+          required: true

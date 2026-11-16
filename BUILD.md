@@ -6,24 +6,28 @@
 - Интернет для скачивания Gradle wrapper'а и зависимостей Minecraft/Fabric (первый запуск).
 - Около 1 ГБ свободной памяти для Gradle (`org.gradle.jvmargs=-Xmx2G` уже выставлено).
 
-## Шаг 1. Получить `gradle-wrapper.jar`
+## Шаг 1. Получить исходники
 
-В проекте уже есть `gradlew`, `gradlew.bat` и `gradle/wrapper/gradle-wrapper.properties`,
-но сам бинарник `gradle-wrapper.jar` нельзя сгенерировать текстом. Получите его одним из способов:
-
-**Вариант A — Gradle уже установлен локально** (рекомендуется):
 ```bash
+git clone https://github.com/OWNER/chaosledger.git
 cd chaosledger
-gradle wrapper --gradle-version 8.14
 ```
 
-**Вариант B — скачать из любого работающего Gradle-проекта или с центрального репозитория**:
+В репозитории уже есть `gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.properties`
+и `gradle/wrapper/gradle-wrapper.jar` — отдельная установка Gradle не нужна.
+
+Если по какой-то причине `gradle-wrapper.jar` отсутствует (например, вы форкнули
+репо до того, как он был закоммичен), сгенерируйте его:
+
 ```bash
-curl -L -o chaosledger/gradle/wrapper/gradle-wrapper.jar \
-  https://raw.githubusercontent.com/gradle/gradle/v8.14.0/gradle/wrapper/gradle-wrapper.jar
+gradle wrapper --gradle-version 8.14 --distribution-type bin
 ```
 
-После этого `./gradlew --version` должен работать.
+Проверьте, что wrapper работает:
+
+```bash
+./gradlew --version
+```
 
 ## Шаг 2. Собрать .jar
 
@@ -137,8 +141,18 @@ curl -X POST http://127.0.0.1:8775/api/transactions/grant \
   подставьте актуальный номер в `gradle.properties` → `loom_version`.
 - **`Could not resolve net.fabricmc.fabric-api:fabric-api:...`** — то же самое для Fabric API.
   См. `https://modrinth.com/mod/fabric-api/versions`.
-- **`yarn_mappings=26.3+build.1`** — проверьте актуальный build на
-  `https://maven.fabricmc.net/net/fabricmc/yarn/`.
+- **Mojang mappings (`loom.layered() { officialMojangMappings(); parchment(...) }`)** —
+  Loom сам скачивает их с `maven.minecraft.net` (архив `client.txt` + маппинги). Если
+  загрузка падает на свежей версии MC, убедитесь, что `minecraft_version` в
+  `gradle.properties` совпадает с опубликованной версией на
+  `https://maven.minecraft.net/net/minecraft/client/`. Никакой ручной `yarn_mappings`
+  не нужен.
+- **Parchment не резолвится (`Could not resolve org.parchmentmc.data:parchment-26.3:...`)** —
+  для 26.3 ещё не опубликована сборка Parchment. Проверьте
+  `https://maven.parchmentmc.org/org/parchmentmc/data/parchment-26.3/` и подставьте
+  актуальный build в `parchment_build`, либо **закомментируйте строку `parchment(...)`
+  в `build.gradle`**, чтобы откатиться на чистый Mojmap (имена параметров будут
+  заглушками `p_123456_`, но сборка пройдёт).
 - **SQLite: `org.sqlite.JDBC is not on the classpath`** — на standalone-запуске
   обязательно добавьте `sqlite-jdbc` в classpath (внутри Fabric-сервера он встроен
   через `include` в `build.gradle`).

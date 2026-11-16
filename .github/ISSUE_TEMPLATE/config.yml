@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discord community
+    url: https://example.com/chaosledger/discord
+    about: Ask questions and discuss with the community on Discord.
+  - name: 📖 Documentation
+    url: https://github.com/OWNER/chaosledger/blob/main/README.md
+    about: Read the README and BUILD.md before opening an issue.
