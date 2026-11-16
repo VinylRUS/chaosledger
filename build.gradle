@@ -34,25 +34,22 @@ loom {
 }
 
 dependencies {
-    // Minecraft 26.x ships UN-OBFUSCATED (since 26.1), so Mojang's official names
-    // are the canonical standard — Yarn is deprecated for 26.x and Parchment is
-    // not needed (there is no obfuscation to layer over). We use plain
-    // `loom.officialMojangMappings()` rather than `loom.layered { ... }`.
+    // Minecraft 26.x ships UN-OBFUSCATED (since 1.21.11 snapshots). Mojang no longer
+    // publishes client_mappings ProGuard files, so there is NO `mappings` line here:
+    //   - `mappings loom.officialMojangMappings()` THROWS "Failed to find official
+    //     mojang mappings for 26.3" (no client_mappings in the 26.3 version manifest).
+    //   - `loom.layered { officialMojangMappings(); parchment(...) }` same problem,
+    //     plus Parchment isn't published for 26.x anyway.
     //
-    // WHY the explicit `mappings` line is required here (even though the official
-    // fabric-example-mod 26.3 omits it): that template calls `splitEnvironmentSourceSets()`
-    // in its `loom { }` block, which auto-configures the `mappings` configuration.
-    // ChaosLedger is server-authoritative and does NOT call splitEnvironmentSourceSets(),
-    // so Loom 1.19 leaves the `mappings` configuration empty and then crashes in
-    // afterEvaluate with:
-    //     `IllegalArgumentException: Configuration 'mappings' has no dependencies`
-    // The fix is to declare the mapping explicitly. On 26.x this is a no-op for
-    // naming (the names already match), but it satisfies Loom's requirement.
+    // Instead, Loom's "debof" (de-obfuscated) code path is activated by the Gradle
+    // property `fabric.loom.disableObfuscation=true` in gradle.properties. That flips
+    // `disableObfuscation()` to true, and CompileConfiguration.provideMinecraft() then
+    // skips the MAPPINGS configuration entirely (it consults the optional ANNOTATIONS
+    // config instead, which is empty and fine).
     //
     // Scope note: on 26.x the official template uses plain `implementation`
     // (not `modImplementation`) for loader + fabric-api.
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     // Fabric API

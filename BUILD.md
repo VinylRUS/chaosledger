@@ -150,18 +150,25 @@ curl -X POST http://127.0.0.1:8775/api/transactions/grant \
   См. `https://modrinth.com/mod/fabric-api/versions`. Обратите внимание: свойство в
   `gradle.properties` называется `fabric_api_version` (с подчёркиванием), а не `fabric_version`.
 - **`Configuration 'mappings' has no dependencies`** (RuntimeException в `afterEvaluate`,
-  `CompileConfiguration.provideMinecraft`) — в `build.gradle` отсутствует строка
-  `mappings loom.officialMojangMappings()`. Loom 1.19 оставляет конфигурацию `mappings`
-  пустой, если в `loom { }` не вызван `splitEnvironmentSourceSets()` (а у нас не вызван —
-  мод сервер-авторитативный, без client source set). Канонический `fabric-example-mod`
-  26.3 строку mappings опускает, но он вызывает `splitEnvironmentSourceSets()`, что и
-  заполняет конфигурацию неявно. **Решение:** в блоке `dependencies { }` должна быть строка
-  `mappings loom.officialMojangMappings()` (она уже там есть — не удаляйте её). Yarn для
-  26.x устарел, Parchment не нужен (нет обфускации, которую покрывать).
-- **Mappings / Yarn** — на 26.x используйте **только** `loom.officialMojangMappings()` (имена
-  Mojang, совпадают с vanilla 1:1). Не используйте `loom.layered { ... }` с Parchment для 26.x
-  (Parchment для 26.3 ещё не опубликован и не нужен — игра разнеобфусцирована с 26.1). Yarn
-  устарел для 26.x. Строка `mappings` обязательна при non-split конфигурации (см. пункт выше).
+  `CompileConfiguration.provideMinecraft`) — Loom 1.19 идёт по legacy-пути обфускации и
+  требует зависимость в конфигурации `mappings`, но в `build.gradle` её нет. На 26.x
+  **не добавляйте** `mappings loom.officialMojangMappings()` — это вызовет следующую
+  ошибку (см. ниже). Правильный фикс — флаг `fabric.loom.disableObfuscation=true` в
+  `gradle.properties`, который переключает Loom на debof-путь и пропускает mappings.
+- **`Failed to find official mojang mappings for 26.3`** (RuntimeException,
+  `MojangMappingsSpec.createLayer`) — в `build.gradle` есть строка
+  `mappings loom.officialMojangMappings()`. Loom пытается скачать `client_mappings` из
+  26.3 version manifest, но **Mojang больше не публикует ProGuard mappings для 26.x**
+  (игра разнеобфусцирована с 1.21.11 snapshots, release-time cutoff 2025-11-01).
+  В манифесте 26.3 есть только `client` и `server` (jar'ы), без `client_mappings`.
+  **Решение:** уберите строку `mappings loom.officialMojangMappings()` из `build.gradle`
+  и убедитесь, что в `gradle.properties` стоит `fabric.loom.disableObfuscation=true`.
+- **Mappings / Yarn / Parchment** — на 26.x **ни одна из этих строк mappings не нужна**:
+  `loom.officialMojangMappings()` падает (нет client_mappings в манифесте),
+  `loom.layered { ... }` с Parchment — Parchment не опубликован для 26.x и не нужен,
+  Yarn устарел для 26.x. Вместо этого Loom активирует свой debof-путь через флаг
+  `fabric.loom.disableObfuscation=true` и использует Mojang names нативно (игра уже
+  разнеобфусцирована). Это единственный рабочий вариант для 26.3 на Loom 1.19.
 - **SQLite: `org.sqlite.JDBC is not on the classpath`** — на standalone-запуске
   обязательно добавьте `sqlite-jdbc` в classpath (внутри Fabric-сервера он встроен
   через `include` в `build.gradle`).
