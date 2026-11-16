@@ -1,13 +1,14 @@
 package dev.chaosledger.chaosledger.item;
 
 import dev.chaosledger.chaosledger.reward.ItemDelivery;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
+import java.util.function.Function;
 
 /**
  * Minecraft-side implementation of {@link ItemDelivery}.
@@ -18,19 +19,19 @@ import java.util.UUID;
  */
 public final class ServerItemDelivery implements ItemDelivery {
 
-    private final java.util.function.Function<UUID, ServerPlayerEntity> playerLookup;
+    private final Function<UUID, ServerPlayer> playerLookup;
 
-    public ServerItemDelivery(java.util.function.Function<UUID, ServerPlayerEntity> playerLookup) {
+    public ServerItemDelivery(Function<UUID, ServerPlayer> playerLookup) {
         this.playerLookup = playerLookup;
     }
 
     @Override
     public boolean deliver(UUID playerUuid, String itemId, int count) {
-        ServerPlayerEntity player = playerLookup.apply(playerUuid);
+        ServerPlayer player = playerLookup.apply(playerUuid);
         if (player == null) return false;
-        Item item = Registries.ITEM.get(Identifier.of(itemId));
+        Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(itemId));
         if (item == null) return false;
         ItemStack stack = new ItemStack(item, count);
-        return player.getInventory().insertStack(stack);
+        return player.getInventory().add(stack);
     }
 }

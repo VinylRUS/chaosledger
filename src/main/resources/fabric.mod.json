@@ -8,8 +8,9 @@
     "ChaosLedger Project"
   ],
   "contact": {
-    "homepage": "https://example.com/chaosledger",
-    "sources": "https://example.com/chaosledger"
+    "homepage": "https://github.com/OWNER/chaosledger",
+    "sources": "https://github.com/OWNER/chaosledger",
+    "issues": "https://github.com/OWNER/chaosledger/issues"
   },
   "license": "MIT",
   "icon": "assets/chaosledger/icon.png",
@@ -24,8 +25,5 @@
     "minecraft": "~26.3",
     "java": ">=25",
     "fabric-api": "*"
-  },
-  "suggests": {
-    "another-mod": "*"
   }
 }

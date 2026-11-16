@@ -1,0 +1,39 @@
+version: 2
+updates:
+  # Gradle dependencies
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "gradle"
+    commit-message:
+      prefix: "deps(gradle)"
+      include-scope: true
+    groups:
+      fabric:
+        patterns:
+          - "net.fabricmc*"
+          - "com.mojang:minecraft"
+      jdbc:
+        patterns:
+          - "org.xerial:sqlite-jdbc"
+      ci:
+        patterns:
+          - "com.gradle*"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "deps(ci)"

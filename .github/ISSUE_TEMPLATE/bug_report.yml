@@ -1,0 +1,99 @@
+name: 🐛 Bug report
+description: Report something that is broken or behaves unexpectedly
+title: "[BUG] <short summary>"
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report! Please fill in the sections below
+        so we can reproduce and fix it quickly.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear description of what went wrong.
+      placeholder: "When I run /cl pay ..., the server crashes with ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Minimal, ordered list of steps.
+      placeholder: |
+        1. Start a Fabric server with ChaosLedger 0.1.0 and Fabric API ...
+        2. Run `/cl admin grant Steve 100`
+        3. Run `/cl pay Steve 50`
+        4. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: "Steve's balance should be 150 CC and mine should be 50 CC."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      placeholder: "Steve's balance stayed 100 CC, mine went to -50 CC, and the server threw NullPointerException."
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: ChaosLedger version
+      placeholder: "0.1.0 (from the GitHub Release asset name)"
+    validations:
+      required: true
+
+  - type: input
+    id: mc_version
+    attributes:
+      label: Minecraft version
+      placeholder: "26.3"
+    validations:
+      required: true
+
+  - type: input
+    id: fabric_api
+    attributes:
+      label: Fabric API version
+      placeholder: "0.130.0+26.3"
+    validations:
+      required: true
+
+  - type: input
+    id: java
+    attributes:
+      label: Java version
+      placeholder: "Temurin 25.0.x"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste the relevant part of `latest.log` or the crash report. Use a code block.
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues and did not find a duplicate.
+          required: true
+        - label: I am running the latest released version (or I am reporting against a specific commit).
+          required: true

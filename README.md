@@ -2,6 +2,14 @@
 
 > Хаотичное комьюнити снаружи, строгий гроссбух внутри.
 
+[![Build](https://github.com/OWNER/chaosledger/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/OWNER/chaosledger/actions/workflows/build.yml)
+[![Release](https://github.com/OWNER/chaosledger/actions/workflows/release.yml/badge.svg)](https://github.com/OWNER/chaosledger/actions/workflows/release.yml)
+[![Latest release](https://img.shields.io/github/v/release/OWNER/chaosledger?include_prereleases&label=release)](https://github.com/OWNER/chaosledger/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://adoptium.net/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.3-green.svg)](https://www.minecraft.net/)
+[![Fabric](https://img.shields.io/badge/Fabric-0.17.x-lightgrey.svg)](https://fabricmc.net/)
+
 ChaosLedger — авторитетный серверный мод для **Minecraft 26.3** на **Fabric**, который
 хранит и обрабатывает:
 
@@ -90,6 +98,43 @@ Minecraft Server + ChaosLedger
         Web Panel / Admin UI
 ```
 
+## Установка
+
+### Из GitHub Releases (проще всего)
+
+1. Перейдите на страницу [Releases](https://github.com/OWNER/chaosledger/releases).
+2. Скачайте `chaosledger-<version>.jar` из последнего релиза.
+3. Убедитесь, что в `mods/` вашего Fabric-сервера лежит **Fabric API** для Minecraft 26.3.
+4. Скопируйте `chaosledger-<version>.jar` в `<server>/mods/`.
+5. Запустите сервер. При первом старте создастся:
+   - `<server>/chaosledger.db` — SQLite база,
+   - `<server>/config/chaosledger/chaosledger.properties` — конфигурация.
+
+Подробнее о конфигурации и standalone-запуске — в [BUILD.md](BUILD.md).
+
+### Из исходников
+
+```bash
+git clone https://github.com/OWNER/chaosledger.git
+cd chaosledger
+# JDK 25 required
+./gradlew build
+# Результат: build/libs/chaosledger-<version>.jar
+```
+
+## Релизы
+
+Релизы полностью автоматизированы тегами. Чтобы опубликовать новую версию:
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+Workflow [release.yml](.github/workflows/release.yml) соберёт jar с правильной
+версией, создаст GitHub Release с автогенерированным changelog и приложит артефакты.
+Pre-release можно запустить вручную из вкладки *Actions → Release → Run workflow*.
+
 ## Команды
 
 ```
@@ -120,11 +165,53 @@ Minecraft Server + ChaosLedger
 - `loom_version=1.17.5`
 - `fabric_version=0.130.0+26.3`
 - `java_version=25`
+- mappings: **Mojang official (Mojmap) + Parchment** — `loom.layered() { officialMojangMappings(); parchment(...) }` в `build.gradle`
+- `parchment_build=2026.10.01` — сборка Parchment для 26.3 (см. [maven.parchmentmc.org](https://maven.parchmentmc.org/org/parchmentmc/data/parchment-26.3/))
 
-> Версии mappings/Fabric API для MC 26.3 могут быть ещё не опубликованы в момент первого
-> релиза. Если сборка падает с ошибкой резолва зависимости — подставьте актуальные
-> build-номера в `gradle.properties` и пересоберите.
+> Minecraft 26.x уже поставляется разнеобфусцированным (с 26.1), поэтому **Yarn
+> устарел** и больше не обновляется. Mojmap — канонический стандарт имён Mojang.
+> Parchment наслаивается сверху, добавляя читаемые имена параметров и javadoc.
+> Если для 26.3 ещё нет сборки Parchment — закомментируйте строку `parchment(...)`
+> в `build.gradle`, чтобы откатиться на чистый Mojmap (имена параметров будут
+> заглушками вида `p_123456_`, но сборка пройдёт).
+>
+> Если сборка падает с ошибкой резолва Fabric API/Loom — подставьте актуальные
+> build-номера в `gradle.properties`.
+
+## Вклад в проект
+
+- Хотите предложить фичу или завести баг? Откройте issue через один из шаблонов
+  [Bug report](.github/ISSUE_TEMPLATE/bug_report.yml) /
+  [Feature request](.github/ISSUE_TEMPLATE/feature_request.yml).
+- Хотите законтрибьютить код? Прочитайте [CONTRIBUTING.md](CONTRIBUTING.md) —
+  там описаны конвенции коммитов, стиль кода и процесс PR.
+- Все участники соблюдают [Code of Conduct](CODE_OF_CONDUCT.md).
+- Зависимости и CI-экшены обновляются автоматически через [Dependabot](.github/dependabot.yml).
+
+## Структура репозитория
+
+```
+chaosledger/
+├── .github/
+│   ├── workflows/      — build.yml (CI), release.yml (релизы по тегам)
+│   ├── ISSUE_TEMPLATE/ — bug_report, feature_request
+│   ├── PULL_REQUEST_TEMPLATE.md
+│   ├── FUNDING.yml
+│   └── dependabot.yml
+├── build.gradle, settings.gradle, gradle.properties
+├── gradlew, gradlew.bat, gradle/wrapper/
+├── README.md, BUILD.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, LICENSE
+└── src/main/...
+```
+
+> ⚠️ Перед первым пушем замените `OWNER` в бейджах и ссылках README/CONTRIBUTING
+> на свой GitHub-username (или организацию), а email'ы в CONTRIBUTING.md и
+> CODE_OF_CONDUCT.md на реальные. `gradle-wrapper.jar` коммитится в репозиторий
+> (стандартная практика Fabric-модов) — CI дополнительно валидирует его через
+> `gradle/actions/wrapper-validation`.
 
 ## Лицензия
 
-MIT — см. `LICENSE`.
+[MIT](LICENSE) — © 2026 ChaosLedger Project. Используйте, форкайте, продавайте —
+просто оставьте копирайт.
+

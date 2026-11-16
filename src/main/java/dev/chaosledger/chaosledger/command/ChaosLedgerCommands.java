@@ -12,13 +12,14 @@ import dev.chaosledger.chaosledger.economy.Money;
 import dev.chaosledger.chaosledger.economy.Transaction;
 import dev.chaosledger.chaosledger.quest.QuestException;
 import dev.chaosledger.chaosledger.quest.QuestProgress;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.UUID;
 
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 /**
  * Registers all {@code /cl} commands.
@@ -42,7 +43,7 @@ public final class ChaosLedgerCommands {
 
     private ChaosLedgerCommands() {}
 
-    public static void register(com.mojang.brigadier.CommandDispatcher<ServerCommandSource> dispatcher) {
+    public static void register(com.mojang.brigadier.CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(literal("cl")
                 .then(literal("balance")
                         .executes(ctx -> balance(ctx, defaultCurrency()))
@@ -73,7 +74,7 @@ public final class ChaosLedgerCommands {
                                 .then(argument("questId", StringArgumentType.word())
                                         .executes(ctx -> questProgress(ctx, StringArgumentType.getString(ctx, "questId"))))))
                 .then(literal("admin")
-                        .requires(source -> source.hasPermissionLevel(2))
+                        .requires(source -> source.hasPermission(2))
                         .then(literal("grant")
                                 .then(argument("player", StringArgumentType.word())
                                         .then(argument("amount", DoubleArgumentType.doubleArg(0.01d))
@@ -109,61 +110,64 @@ public final class ChaosLedgerCommands {
 
     // ----- Economy -----
 
-    private static int balance(CommandContext<ServerCommandSource> ctx, String currency) throws CommandSyntaxException {
-        ServerCommandSource src = ctx.getSource();
-        UUID uuid = src.getPlayer().getUuid();
-        String name = src.getPlayer().getName().getString();
+    private static int balance(CommandContext<CommandSourceStack> ctx, String currency) throws CommandSyntaxException {
+        CommandSourceStack src = ctx.getSource();
+        ServerPlayer player = src.getPlayerOrException();
+        UUID uuid = player.getUUID();
+        String name = player.getName().getString();
         try {
             Account a = ChaosLedger.services().economy().accountOf(uuid, name, currency);
-            src.sendFeedback(() -> Text.literal("§6[ChaosLedger]§r Balance: §e" + a.balance().amount() + " " + a.balance().currency()), false);
+            src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Balance: §e" + a.balance().amount() + " " + a.balance().currency()), false);
             return 1;
         } catch (EconomyException e) {
-            src.sendFeedback(() -> Text.literal("§c[ChaosLedger] " + e.getMessage()), false);
+            src.sendFailure(Component.literal("§c[ChaosLedger] " + e.getMessage()));
             return 0;
         }
     }
 
-    private static int pay(CommandContext<ServerCommandSource> ctx, String currency, String reason) throws CommandSyntaxException {
-        ServerCommandSource src = ctx.getSource();
+    private static int pay(CommandContext<CommandSourceStack> ctx, String currency, String reason) throws CommandSyntaxException {
+        CommandSourceStack src = ctx.getSource();
+        ServerPlayer sender = src.getPlayerOrException();
         String targetName = StringArgumentType.getString(ctx, "player");
         double amount = DoubleArgumentType.getDouble(ctx, "amount");
-        var target = src.getServer().getPlayerManager().getPlayer(targetName);
+        var target = src.getServer().getPlayerList().getPlayerByName(targetName);
         if (target == null) {
-            src.sendFeedback(() -> Text.literal("§cPlayer not found: " + targetName), false);
+            src.sendFailure(Component.literal("§cPlayer not found: " + targetName));
             return 0;
         }
         try {
             Money money = new Money(amount, currency);
             Transaction tx = ChaosLedger.services().economy().pay(
-                    src.getPlayer().getUuid(), src.getPlayer().getName().getString(),
-                    target.getUuid(), target.getName().getString(),
+                    sender.getUUID(), sender.getName().getString(),
+                    target.getUUID(), target.getName().getString(),
                     currency, money, reason);
-            src.sendFeedback(() -> Text.literal("§6[ChaosLedger]§r Sent §e" + money.amount() + " " + money.currency()
+            src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Sent §e" + money.amount() + " " + money.currency()
                     + "§r to §b" + targetName + "§r (tx #" + tx.id() + ")"), false);
-            target.sendMessage(Text.literal("§6[ChaosLedger]§r Received §e" + money.amount() + " " + money.currency()
-                    + "§r from §b" + src.getName() + "§r: " + reason));
+            target.sendSystemMessage(Component.literal("§6[ChaosLedger]§r Received §e" + money.amount() + " " + money.currency()
+                    + "§r from §b" + src.getTextName() + "§r: " + reason));
             return 1;
         } catch (EconomyException e) {
-            src.sendFeedback(() -> Text.literal("§c[ChaosLedger] " + e.getMessage()), false);
+            src.sendFailure(Component.literal("§c[ChaosLedger] " + e.getMessage()));
             return 0;
         }
     }
 
-    private static int transactions(CommandContext<ServerCommandSource> ctx, int limit) throws CommandSyntaxException {
-        ServerCommandSource src = ctx.getSource();
-        UUID uuid = src.getPlayer().getUuid();
+    private static int transactions(CommandContext<CommandSourceStack> ctx, int limit) throws CommandSyntaxException {
+        CommandSourceStack src = ctx.getSource();
+        ServerPlayer player = src.getPlayerOrException();
+        UUID uuid = player.getUUID();
         var txs = ChaosLedger.services().economy().history(uuid, limit);
         if (txs.isEmpty()) {
-            src.sendFeedback(() -> Text.literal("§7[ChaosLedger] No transactions yet."), false);
+            src.sendSuccess(() -> Component.literal("§7[ChaosLedger] No transactions yet."), false);
             return 1;
         }
-        src.sendFeedback(() -> Text.literal("§6[ChaosLedger]§r Last " + txs.size() + " transactions:"), false);
+        src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Last " + txs.size() + " transactions:"), false);
         for (Transaction t : txs) {
             String dir = t.fromUuid().isPresent() && t.fromUuid().get().equals(uuid) ? "§cout §r" : "§ain §r";
             String counterparty = t.fromUuid().isPresent() && t.fromUuid().get().equals(uuid)
                     ? (t.toUuid().isPresent() ? shortUuid(t.toUuid().get()) : "server")
                     : (t.fromUuid().isPresent() ? shortUuid(t.fromUuid().get()) : "server");
-            src.sendFeedback(() -> Text.literal(" §7#" + t.id() + " " + dir
+            src.sendSuccess(() -> Component.literal(" §7#" + t.id() + " " + dir
                     + t.amount().amount() + " " + t.amount().currency()
                     + " §7" + t.category() + " §8" + counterparty + " — " + t.reason()), false);
         }
@@ -172,143 +176,146 @@ public final class ChaosLedgerCommands {
 
     // ----- Quests -----
 
-    private static int questList(CommandContext<ServerCommandSource> ctx) {
+    private static int questList(CommandContext<CommandSourceStack> ctx) {
         var quests = ChaosLedger.services().questEngine().all();
         if (quests.isEmpty()) {
-            ctx.getSource().sendFeedback(() -> Text.literal("§7[ChaosLedger] No quests defined."), false);
+            ctx.getSource().sendSuccess(() -> Component.literal("§7[ChaosLedger] No quests defined."), false);
             return 1;
         }
-        ctx.getSource().sendFeedback(() -> Text.literal("§6[ChaosLedger]§r Quests (" + quests.size() + "):"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Quests (" + quests.size() + "):"), false);
         for (var q : quests) {
-            ctx.getSource().sendFeedback(() -> Text.literal(" §b" + q.id() + "§r §7(" + q.objectives().size() + " objectives)§r — " + q.title()), false);
+            ctx.getSource().sendSuccess(() -> Component.literal(" §b" + q.id() + "§r §7(" + q.objectives().size() + " objectives)§r — " + q.title()), false);
         }
         return 1;
     }
 
-    private static int questStart(CommandContext<ServerCommandSource> ctx, String questId) throws CommandSyntaxException {
-        ServerCommandSource src = ctx.getSource();
-        UUID uuid = src.getPlayer().getUuid();
+    private static int questStart(CommandContext<CommandSourceStack> ctx, String questId) throws CommandSyntaxException {
+        CommandSourceStack src = ctx.getSource();
+        ServerPlayer player = src.getPlayerOrException();
+        UUID uuid = player.getUUID();
         try {
             QuestProgress p = ChaosLedger.services().questEngine().start(uuid, questId);
-            src.sendFeedback(() -> Text.literal("§6[ChaosLedger]§r Quest §b" + questId + "§r is now §e" + p.state() + "§r."), false);
+            src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Quest §b" + questId + "§r is now §e" + p.state() + "§r."), false);
             return 1;
         } catch (QuestException e) {
-            src.sendFeedback(() -> Text.literal("§c[ChaosLedger] " + e.getMessage()), false);
+            src.sendFailure(Component.literal("§c[ChaosLedger] " + e.getMessage()));
             return 0;
         }
     }
 
-    private static int questClaim(CommandContext<ServerCommandSource> ctx, String questId) throws CommandSyntaxException {
-        ServerCommandSource src = ctx.getSource();
-        UUID uuid = src.getPlayer().getUuid();
-        String name = src.getPlayer().getName().getString();
+    private static int questClaim(CommandContext<CommandSourceStack> ctx, String questId) throws CommandSyntaxException {
+        CommandSourceStack src = ctx.getSource();
+        ServerPlayer player = src.getPlayerOrException();
+        UUID uuid = player.getUUID();
+        String name = player.getName().getString();
         try {
             ChaosLedger.services().questEngine().claim(uuid, name, questId);
-            src.sendFeedback(() -> Text.literal("§6[ChaosLedger]§r Reward claimed for §b" + questId + "§r."), false);
+            src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Reward claimed for §b" + questId + "§r."), false);
             return 1;
         } catch (QuestException e) {
-            src.sendFeedback(() -> Text.literal("§c[ChaosLedger] " + e.getMessage()), false);
+            src.sendFailure(Component.literal("§c[ChaosLedger] " + e.getMessage()));
             return 0;
         }
     }
 
-    private static int questProgress(CommandContext<ServerCommandSource> ctx, String questId) throws CommandSyntaxException {
-        ServerCommandSource src = ctx.getSource();
-        UUID uuid = src.getPlayer().getUuid();
+    private static int questProgress(CommandContext<CommandSourceStack> ctx, String questId) throws CommandSyntaxException {
+        CommandSourceStack src = ctx.getSource();
+        ServerPlayer player = src.getPlayerOrException();
+        UUID uuid = player.getUUID();
         try {
             QuestProgress p = ChaosLedger.services().questEngine().progressOf(uuid, questId);
-            src.sendFeedback(() -> Text.literal("§6[ChaosLedger]§r Quest §b" + questId + "§r state: §e" + p.state() + "§r"), false);
+            src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Quest §b" + questId + "§r state: §e" + p.state() + "§r"), false);
             var objectives = ChaosLedger.services().questEngine().quest(questId).orElseThrow().objectives();
             for (int i = 0; i < objectives.size(); i++) {
                 double done = i < p.progress().size() ? p.progress().get(i) : 0d;
                 var o = objectives.get(i);
-                src.sendFeedback(() -> Text.literal(" §7- " + o.description()
+                src.sendSuccess(() -> Component.literal(" §7- " + o.description()
                         + " [" + (int) done + "/" + (int) o.required() + "]"), false);
             }
             return 1;
         } catch (QuestException e) {
-            src.sendFeedback(() -> Text.literal("§c[ChaosLedger] " + e.getMessage()), false);
+            src.sendFailure(Component.literal("§c[ChaosLedger] " + e.getMessage()));
             return 0;
         }
     }
 
     // ----- Admin -----
 
-    private static int adminGrant(CommandContext<ServerCommandSource> ctx, String currency, String reason) throws CommandSyntaxException {
-        ServerCommandSource src = ctx.getSource();
+    private static int adminGrant(CommandContext<CommandSourceStack> ctx, String currency, String reason) throws CommandSyntaxException {
+        CommandSourceStack src = ctx.getSource();
         String targetName = StringArgumentType.getString(ctx, "player");
         double amount = DoubleArgumentType.getDouble(ctx, "amount");
-        var target = src.getServer().getPlayerManager().getPlayer(targetName);
+        var target = src.getServer().getPlayerList().getPlayerByName(targetName);
         if (target == null) {
-            src.sendFeedback(() -> Text.literal("§cPlayer not found: " + targetName), false);
+            src.sendFailure(Component.literal("§cPlayer not found: " + targetName));
             return 0;
         }
         try {
             Money money = new Money(amount, currency);
             Transaction tx = ChaosLedger.services().economy().grant(
-                    target.getUuid(), target.getName().getString(), currency, money, reason);
-            src.sendFeedback(() -> Text.literal("§6[ChaosLedger]§r Granted §e" + money.amount() + " " + money.currency()
+                    target.getUUID(), target.getName().getString(), currency, money, reason);
+            src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Granted §e" + money.amount() + " " + money.currency()
                     + "§r to §b" + targetName + "§r (tx #" + tx.id() + ")"), true);
             return 1;
         } catch (EconomyException e) {
-            src.sendFeedback(() -> Text.literal("§c[ChaosLedger] " + e.getMessage()), false);
+            src.sendFailure(Component.literal("§c[ChaosLedger] " + e.getMessage()));
             return 0;
         }
     }
 
-    private static int adminCharge(CommandContext<ServerCommandSource> ctx, String currency, String reason) throws CommandSyntaxException {
-        ServerCommandSource src = ctx.getSource();
+    private static int adminCharge(CommandContext<CommandSourceStack> ctx, String currency, String reason) throws CommandSyntaxException {
+        CommandSourceStack src = ctx.getSource();
         String targetName = StringArgumentType.getString(ctx, "player");
         double amount = DoubleArgumentType.getDouble(ctx, "amount");
-        var target = src.getServer().getPlayerManager().getPlayer(targetName);
+        var target = src.getServer().getPlayerList().getPlayerByName(targetName);
         if (target == null) {
-            src.sendFeedback(() -> Text.literal("§cPlayer not found: " + targetName), false);
+            src.sendFailure(Component.literal("§cPlayer not found: " + targetName));
             return 0;
         }
         try {
             Money money = new Money(amount, currency);
             Transaction tx = ChaosLedger.services().economy().charge(
-                    target.getUuid(), target.getName().getString(), currency, money, reason, "ADMIN");
-            src.sendFeedback(() -> Text.literal("§6[ChaosLedger]§r Charged §e" + money.amount() + " " + money.currency()
+                    target.getUUID(), target.getName().getString(), currency, money, reason, "ADMIN");
+            src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Charged §e" + money.amount() + " " + money.currency()
                     + "§r from §b" + targetName + "§r (tx #" + tx.id() + ")"), true);
             return 1;
         } catch (EconomyException e) {
-            src.sendFeedback(() -> Text.literal("§c[ChaosLedger] " + e.getMessage()), false);
+            src.sendFailure(Component.literal("§c[ChaosLedger] " + e.getMessage()));
             return 0;
         }
     }
 
-    private static int adminTop(CommandContext<ServerCommandSource> ctx, String currency, int limit) {
+    private static int adminTop(CommandContext<CommandSourceStack> ctx, String currency, int limit) {
         var top = ChaosLedger.services().economy().top(currency, limit);
         if (top.isEmpty()) {
-            ctx.getSource().sendFeedback(() -> Text.literal("§7[ChaosLedger] No accounts in " + currency + " yet."), false);
+            ctx.getSource().sendSuccess(() -> Component.literal("§7[ChaosLedger] No accounts in " + currency + " yet."), false);
             return 1;
         }
-        ctx.getSource().sendFeedback(() -> Text.literal("§6[ChaosLedger]§r Top balances in §e" + currency + "§r:"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Top balances in §e" + currency + "§r:"), false);
         int rank = 1;
         for (Account a : top) {
             final int r = rank++;
-            ctx.getSource().sendFeedback(() -> Text.literal(" §e#" + r + "§r §b" + a.ownerName()
+            ctx.getSource().sendSuccess(() -> Component.literal(" §e#" + r + "§r §b" + a.ownerName()
                     + "§r — " + a.balance().amount() + " " + a.balance().currency()), false);
         }
         return 1;
     }
 
-    private static int adminReload(CommandContext<ServerCommandSource> ctx) {
-        ctx.getSource().sendFeedback(() -> Text.literal("§6[ChaosLedger]§r Config is loaded at startup; restart the server to apply changes."), false);
+    private static int adminReload(CommandContext<CommandSourceStack> ctx) {
+        ctx.getSource().sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Config is loaded at startup; restart the server to apply changes."), false);
         return 1;
     }
 
-    private static int help(CommandContext<ServerCommandSource> ctx) {
-        ctx.getSource().sendFeedback(() -> Text.literal("§6ChaosLedger commands:§r"), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§e/cl balance [currency]§r — your balance"), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§e/cl pay <player> <amount> [currency] [reason]§r — transfer money"), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§e/cl transactions [limit]§r — your transaction history"), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§e/cl quest list§r — available quests"), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§e/cl quest start <id>§r — start a quest"), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§e/cl quest claim <id>§r — claim the reward"), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§e/cl quest progress <id>§r — see your progress"), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§e/cl admin grant|charge|top|reload§r — admin tools"), false);
+    private static int help(CommandContext<CommandSourceStack> ctx) {
+        ctx.getSource().sendSuccess(() -> Component.literal("§6ChaosLedger commands:§r"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§e/cl balance [currency]§r — your balance"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§e/cl pay <player> <amount> [currency] [reason]§r — transfer money"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§e/cl transactions [limit]§r — your transaction history"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§e/cl quest list§r — available quests"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§e/cl quest start <id>§r — start a quest"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§e/cl quest claim <id>§r — claim the reward"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§e/cl quest progress <id>§r — see your progress"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§e/cl admin grant|charge|top|reload§r — admin tools"), false);
         return 1;
     }
 

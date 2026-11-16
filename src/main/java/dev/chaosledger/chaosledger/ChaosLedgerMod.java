@@ -9,6 +9,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,8 +48,8 @@ public final class ChaosLedgerMod implements ModInitializer {
     }
 
     private void onServerStarting(MinecraftServer server) {
-        ChaosLedgerConfig config = loadConfig(server);
-        ItemDelivery delivery = new ServerItemDelivery(uuid -> server.getPlayerManager().getPlayer(uuid));
+        ChaosLedgerConfig config = loadConfig();
+        ItemDelivery delivery = new ServerItemDelivery(uuid -> server.getPlayerList().getPlayer(uuid));
         ChaosLedgerServices services = new ChaosLedgerServices(config, delivery);
         ChaosLedger.init(config, services);
 
@@ -76,7 +77,7 @@ public final class ChaosLedgerMod implements ModInitializer {
 
     private void onEndServerTick(MinecraftServer server) {
         // Recompute market prices every 600 ticks (~30s) so signals decay and prices drift.
-        if (server.getTicks() % 600 == 0) {
+        if (server.getTickCount() % 600 == 0) {
             try {
                 ChaosLedger.services().marketEngine().recomputeAll();
             } catch (RuntimeException e) {
@@ -85,8 +86,11 @@ public final class ChaosLedgerMod implements ModInitializer {
         }
     }
 
-    private ChaosLedgerConfig loadConfig(MinecraftServer server) {
-        Path dir = server.getRunPath().resolve("config").resolve(MOD_ID);
+    private ChaosLedgerConfig loadConfig() {
+        // Framework-stable game directory (mapping-independent). On a dedicated server
+        // this is the server root, equivalent to the old Yarn server.getRunPath().
+        Path gameDir = FabricLoader.getInstance().getGameDir();
+        Path dir = gameDir.resolve("config").resolve(MOD_ID);
         Path file = dir.resolve("chaosledger.properties");
         try {
             Files.createDirectories(dir);
@@ -97,7 +101,7 @@ public final class ChaosLedgerMod implements ModInitializer {
                 }
             } else {
                 ChaosLedgerConfig defaults = new ChaosLedgerConfig();
-                defaults.setDatabaseFile(server.getRunPath().resolve("chaosledger.db"));
+                defaults.setDatabaseFile(gameDir.resolve("chaosledger.db"));
                 props = defaults.asProperties();
                 try (var out = Files.newBufferedWriter(file)) {
                     props.store(out, "ChaosLedger configuration. Edit and restart the server to apply.");

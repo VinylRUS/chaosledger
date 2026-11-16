@@ -3,22 +3,22 @@ package dev.chaosledger.chaosledger.gui;
 import dev.chaosledger.chaosledger.ChaosLedger;
 import dev.chaosledger.chaosledger.economy.Account;
 import dev.chaosledger.chaosledger.economy.EconomyException;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import java.util.UUID;
 
 /**
- * Vanilla chest-style ScreenHandler showing the player their ChaosLedger balances.
+ * Vanilla chest-style AbstractContainerMenu showing the player their ChaosLedger balances.
  *
  * <p>This is the in-game "ledger menu": each row is one currency the player owns,
  * rendered as a labelled gold ingot stack with the balance in the item's name.</p>
@@ -26,17 +26,17 @@ import java.util.UUID;
  * <p>NOTE: This is a first-version, read-only menu. Click interactions for
  * paying / claiming are intentionally deferred.</p>
  */
-public class LedgerScreenHandler extends ScreenHandler {
+public class LedgerScreenHandler extends AbstractContainerMenu {
 
-    private final SimpleInventory display = new SimpleInventory(27);
+    private final SimpleContainer display = new SimpleContainer(27);
 
-    public LedgerScreenHandler(int syncId, PlayerInventory playerInventory) {
+    public LedgerScreenHandler(int syncId, Inventory playerInventory) {
         this(syncId, playerInventory, playerInventory.player);
     }
 
-    public LedgerScreenHandler(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-        super(ScreenHandlerType.GENERIC_9X3, syncId);
-        UUID uuid = player.getUuid();
+    public LedgerScreenHandler(int syncId, Inventory playerInventory, Player player) {
+        super(MenuType.GENERIC_9x3, syncId);
+        UUID uuid = player.getUUID();
         String name = player.getName().getString();
         for (Account a : ChaosLedger.services().economy().accountsOf(uuid)) {
             displayStack(a);
@@ -58,36 +58,37 @@ public class LedgerScreenHandler extends ScreenHandler {
 
     private void displayStack(Account a) {
         ItemStack stack = new ItemStack(Items.GOLD_INGOT);
-        stack.setCustomName(Text.literal(a.balance().amount() + " " + a.balance().currency())
-                .formatted(Formatting.GOLD));
-        display.addStack(stack);
+        stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
+                Component.literal(a.balance().amount() + " " + a.balance().currency())
+                        .withStyle(ChatFormatting.GOLD));
+        display.addItem(stack);
     }
 
     @Override
-    public ItemStack quickMove(PlayerEntity player, int fromIndex) {
+    public ItemStack quickMoveStack(Player player, int fromIndex) {
         return ItemStack.EMPTY;
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
+    public boolean stillValid(Player player) {
         return true;
     }
 
-    public static void open(ServerPlayerEntity player) {
+    public static void open(ServerPlayer player) {
         try {
-            player.openHandledScreen(new net.minecraft.screen.NamedScreenHandlerFactory() {
+            player.openMenu(new net.minecraft.world.MenuProvider() {
                 @Override
-                public Text getDisplayName() {
-                    return Text.literal("§6ChaosLedger§r — Balances");
+                public Component getDisplayName() {
+                    return Component.literal("§6ChaosLedger§r — Balances");
                 }
 
                 @Override
-                public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity p) {
+                public AbstractContainerMenu createMenu(int syncId, Inventory inv, Player p) {
                     return new LedgerScreenHandler(syncId, inv, p);
                 }
             });
         } catch (EconomyException e) {
-            player.sendMessage(Text.literal("§c[ChaosLedger] " + e.getMessage()));
+            player.sendSystemMessage(Component.literal("§c[ChaosLedger] " + e.getMessage()));
         }
     }
 }
