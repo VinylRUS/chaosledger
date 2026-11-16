@@ -49,10 +49,12 @@ jobs:
 
       - name: Generate Gradle wrapper (fallback if missing)
         # The repo commits gradle-wrapper.jar, but we regenerate it as a safety net.
+        # Gradle 9.8.2 is required for Loom 1.19 on JDK 25 — Gradle 8.x cannot read
+        # Java 25 class files (major version 69).
         run: |
           if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
             echo "gradle-wrapper.jar missing - generating with system gradle"
-            gradle wrapper --gradle-version 8.14 --distribution-type bin
+            gradle wrapper --gradle-version 9.8.2 --distribution-type bin
           fi
           ls -la gradle/wrapper/
 

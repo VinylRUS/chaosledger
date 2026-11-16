@@ -77,12 +77,15 @@ See [README.md](README.md) for the full tree. The short version:
 
 ### Mappings
 
-The mod targets **Mojang official mappings (Mojmap)** for Minecraft 26.3, configured
-in `build.gradle` via `loom.layered() { officialMojangMappings(); parchment(...) }`.
-Mojmap uses Mojang's official names, which match the vanilla source 1:1 — this is
-the canonical standard for 26.x, since Yarn is deprecated for the un-obfuscated
-era (26.1+). Parchment is layered on top to provide human-readable parameter names
-and javadoc.
+The mod uses **Mojang's official names (Mojmap)** for Minecraft 26.3 — and on 26.x
+there is **no `mappings` line in `build.gradle` at all**. Since 26.1 the game ships
+un-obfuscated, so Loom 1.19 consumes Mojang's class/member names natively. Yarn is
+deprecated for the 26.x era, and Parchment is not needed (there is no obfuscation
+to layer over). This matches the official `fabric-example-mod` 26.3 branch exactly.
+
+**Build toolchain:** Gradle 9.8.2 + Loom 1.19-SNAPSHOT + JDK 25. Gradle 8.x cannot
+read Java 25 class files and crashes with `Unsupported class file major version 69`
+— do not downgrade the wrapper below 9.4.
 
 When porting code from an older Yarn-based mod, the common renames are:
 

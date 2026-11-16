@@ -161,21 +161,22 @@ Pre-release можно запустить вручную из вкладки *Ac
 ## Версии
 
 - `minecraft_version=26.3`
-- `loader_version=0.17.0`
-- `loom_version=1.17.5`
-- `fabric_version=0.130.0+26.3`
+- `loader_version=0.20.1`
+- `loom_version=1.19-SNAPSHOT`
+- `fabric_api_version=0.166.2+26.3`
 - `java_version=25`
-- mappings: **Mojang official (Mojmap) + Parchment** — `loom.layered() { officialMojangMappings(); parchment(...) }` в `build.gradle`
-- `parchment_build=2026.10.01` — сборка Parchment для 26.3 (см. [maven.parchmentmc.org](https://maven.parchmentmc.org/org/parchmentmc/data/parchment-26.3/))
+- **Gradle wrapper: 9.8.2** (Gradle 8.x не умеет читать Java 25 class files → `Unsupported class file major version 69`)
+- mappings: **нет строки mappings** — MC 26.x поставляется разнеобфусцированным, Loom 1.19 потребляет Mojang names нативно
 
 > Minecraft 26.x уже поставляется разнеобфусцированным (с 26.1), поэтому **Yarn
-> устарел** и больше не обновляется. Mojmap — канонический стандарт имён Mojang.
-> Parchment наслаивается сверху, добавляя читаемые имена параметров и javadoc.
-> Если для 26.3 ещё нет сборки Parchment — закомментируйте строку `parchment(...)`
-> в `build.gradle`, чтобы откатиться на чистый Mojmap (имена параметров будут
-> заглушками вида `p_123456_`, но сборка пройдёт).
+> устарел** и больше не обновляется, а Parchment для 26.x не нужен (нет обфускации,
+> которую покрывать). Имена Mojang — канонический стандарт, Loom потребляет их
+> напрямую без какой-либо `mappings`-строки в `build.gradle`. Это совпадает с
+> официальным `fabric-example-mod` веткой 26.3.
 >
-> Если сборка падает с ошибкой резолва Fabric API/Loom — подставьте актуальные
+> Версии Fabric API/Loom для MC 26.3 могут быть ещё не опубликованы в момент первого
+> релиза. Если сборка падает с ошибкой резолва зависимости — подставьте актуальные
+> build-номера в `gradle.properties` (см. [fabricmc.net/develop](https://fabricmc.net/develop)).
 > build-номера в `gradle.properties`.
 
 ## Вклад в проект
