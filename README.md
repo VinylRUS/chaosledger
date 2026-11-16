@@ -2,13 +2,13 @@
 
 > Хаотичное комьюнити снаружи, строгий гроссбух внутри.
 
-[![Build](https://github.com/OWNER/chaosledger/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/OWNER/chaosledger/actions/workflows/build.yml)
-[![Release](https://github.com/OWNER/chaosledger/actions/workflows/release.yml/badge.svg)](https://github.com/OWNER/chaosledger/actions/workflows/release.yml)
-[![Latest release](https://img.shields.io/github/v/release/OWNER/chaosledger?include_prereleases&label=release)](https://github.com/OWNER/chaosledger/releases)
+[![Build](https://github.com/VinylRUS/chaosledger/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/VinylRUS/chaosledger/actions/workflows/build.yml)
+[![Release](https://github.com/VinylRUS/chaosledger/actions/workflows/release.yml/badge.svg)](https://github.com/VinylRUS/chaosledger/actions/workflows/release.yml)
+[![Latest release](https://img.shields.io/github/v/release/VinylRUS/chaosledger?include_prereleases&label=release)](https://github.com/VinylRUS/chaosledger/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://adoptium.net/)
 [![Minecraft](https://img.shields.io/badge/Minecraft-26.3-green.svg)](https://www.minecraft.net/)
-[![Fabric](https://img.shields.io/badge/Fabric-0.17.x-lightgrey.svg)](https://fabricmc.net/)
+[![Fabric](https://img.shields.io/badge/Fabric-0.20.x-lightgrey.svg)](https://fabricmc.net/)
 
 ChaosLedger — авторитетный серверный мод для **Minecraft 26.3** на **Fabric**, который
 хранит и обрабатывает:
@@ -29,10 +29,10 @@ ChaosLedger — авторитетный серверный мод для **Mine
 | Компонент          | Технология                                   |
 |--------------------|----------------------------------------------|
 | Minecraft          | 26.3                                         |
-| Modloader          | Fabric Loader 0.17.x                         |
+| Modloader          | Fabric Loader 0.20.1                         |
 | Java               | 25                                           |
-| Build tool         | Gradle 8.14 (wrapper включён)                |
-| Fabric Loom        | 1.17.x                                       |
+| Build tool         | Gradle 9.8.2 (wrapper включён)               |
+| Fabric Loom        | 1.19-SNAPSHOT                                   |
 | Fabric API         | ветка под Minecraft 26.3                     |
 | JSON               | Gson (входит в дистрибутив Minecraft)        |
 | HTTP API           | встроенный `com.sun.net.httpserver.HttpServer` |
@@ -102,7 +102,7 @@ Minecraft Server + ChaosLedger
 
 ### Из GitHub Releases (проще всего)
 
-1. Перейдите на страницу [Releases](https://github.com/OWNER/chaosledger/releases).
+1. Перейдите на страницу [Releases](https://github.com/VinylRUS/chaosledger/releases).
 2. Скачайте `chaosledger-<version>.jar` из последнего релиза.
 3. Убедитесь, что в `mods/` вашего Fabric-сервера лежит **Fabric API** для Minecraft 26.3.
 4. Скопируйте `chaosledger-<version>.jar` в `<server>/mods/`.
@@ -115,7 +115,7 @@ Minecraft Server + ChaosLedger
 ### Из исходников
 
 ```bash
-git clone https://github.com/OWNER/chaosledger.git
+git clone https://github.com/VinylRUS/chaosledger.git
 cd chaosledger
 # JDK 25 required
 ./gradlew build
@@ -182,7 +182,6 @@ Pre-release можно запустить вручную из вкладки *Ac
 > Версии Fabric API/Loom для MC 26.3 могут быть ещё не опубликованы в момент первого
 > релиза. Если сборка падает с ошибкой резолва зависимости — подставьте актуальные
 > build-номера в `gradle.properties` (см. [fabricmc.net/develop](https://fabricmc.net/develop)).
-> build-номера в `gradle.properties`.
 
 ## Вклад в проект
 
@@ -210,11 +209,10 @@ chaosledger/
 └── src/main/...
 ```
 
-> ⚠️ Перед первым пушем замените `OWNER` в бейджах и ссылках README/CONTRIBUTING
-> на свой GitHub-username (или организацию), а email'ы в CONTRIBUTING.md и
-> CODE_OF_CONDUCT.md на реальные. `gradle-wrapper.jar` коммитится в репозиторий
-> (стандартная практика Fabric-модов) — CI дополнительно валидирует его через
-> `gradle/actions/wrapper-validation`.
+> ⚠️ Бейджи и ссылки указывают на `VinylRUS/chaosledger`. Email'ы в CONTRIBUTING.md
+> и CODE_OF_CONDUCT.md — плейсхолдеры, замените на реальные при необходимости.
+> `gradle-wrapper.jar` коммитится в репозиторий (стандартная практика Fabric-модов)
+> — CI дополнительно валидирует его через `gradle/actions/wrapper-validation`.
 
 ## Лицензия
 
