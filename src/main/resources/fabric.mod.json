@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "chaosledger",
+  "version": "${version}",
+  "name": "ChaosLedger",
+  "description": "Authoritative server-side Fabric mod for Minecraft 26.3 that owns the economy, dynamic prices, quests, rewards and audit log. The web panel is just a viewer.",
+  "authors": [
+    "ChaosLedger Project"
+  ],
+  "contact": {
+    "homepage": "https://example.com/chaosledger",
+    "sources": "https://example.com/chaosledger"
+  },
+  "license": "MIT",
+  "icon": "assets/chaosledger/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.chaosledger.chaosledger.ChaosLedgerMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.17.0",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

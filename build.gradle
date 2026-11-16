@@ -1,0 +1,91 @@
+plugins {
+    id 'fabric-loom' version "${loom_version}"
+    id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    mavenCentral()
+    // Additional repositories (maven.fabricmc.net is added by Loom automatically)
+    maven { url = 'https://maven.fabricmc.net/' }
+}
+
+loom {
+    // Split client/server sources are not required for a server-authoritative mod,
+    // but Loom still wants the mixin/refmap config if present. We keep it minimal.
+    splitEnvironmentSourceSets = false
+    mods {
+        "chaosledger" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+dependencies {
+    // Minecraft, Yarn mappings and Fabric Loader come from Loom.
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    // Fabric API
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // Gson is shipped with the Minecraft distribution (com.google.gson) - no extra dependency needed.
+
+    // SQLite JDBC driver - bundled inside the jar so the server does not need an external copy.
+    implementation 'org.xerial:sqlite-jdbc:3.46.1.3'
+    include 'org.xerial:sqlite-jdbc:3.46.1.3'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.encoding = 'UTF-8'
+    it.options.release = Integer.parseInt(project.java_version)
+    it.options.compilerArgs += ['-parameters']
+}
+
+java {
+    sourceCompatibility = JavaLanguageVersion.of(project.java_version)
+    targetCompatibility = JavaLanguageVersion.of(project.java_version)
+    withSourcesJar()
+}
+
+jar {
+    from('LICENSE') {
+        // Include LICENSE if present.
+    }
+    manifest {
+        attributes([
+                'Specification-Title'     : project.archives_base_name,
+                'Specification-Vendor'    : 'ChaosLedger Project',
+                'Specification-Version'   : project.mod_version,
+                'Implementation-Title'    : project.archives_base_name,
+                'Implementation-Vendor'   : 'ChaosLedger Project',
+                'Implementation-Version'  : project.mod_version,
+                'Main-Class'              : 'dev.chaosledger.chaosledger.bootstrap.Standalone',
+                'Multi-Release'           : 'true'
+        ])
+    }
+}
+
+processResources {
+    inputs.property 'version', project.version
+
+    filesMatching('fabric.mod.json') {
+        expand version: project.version
+    }
+}
+
+publishing {
+    publications {
+        create('mavenJava', MavenPublication) {
+            from components.java
+            artifactId = project.archives_base_name
+        }
+    }
+}

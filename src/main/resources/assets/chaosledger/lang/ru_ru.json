@@ -1,0 +1,21 @@
+{
+  "item.chaosledger.ledger_coin": "Монета реестра",
+  "itemGroup.chaosledger.main": "ChaosLedger",
+  "cl.balance.title": "ChaosLedger — Балансы",
+  "cl.help.header": "Команды ChaosLedger:",
+  "cl.balance.self": "Ваш баланс: %s %s",
+  "cl.pay.sent": "Отправлено %s %s игроку %s (транзакция #%s)",
+  "cl.pay.received": "Получено %s %s от %s: %s",
+  "cl.transactions.empty": "Транзакций пока нет.",
+  "cl.transactions.header": "Последние %s транзакций:",
+  "cl.quest.list.empty": "Квесты не заданы.",
+  "cl.quest.list.header": "Квесты (%s):",
+  "cl.quest.started": "Квест %s теперь %s.",
+  "cl.quest.claimed": "Награда за %s получена.",
+  "cl.admin.top.empty": "В валюте %s ещё нет счетов.",
+  "cl.admin.top.header": "Топ балансов в %s:",
+  "cl.error.player_not_found": "Игрок не найден: %s",
+  "cl.error.insufficient_funds": "Недостаточно средств: %s < %s",
+  "cl.error.unknown_currency": "Неизвестная валюта: %s",
+  "cl.error.unknown_quest": "Неизвестный квест: %s"
+}

@@ -1,0 +1,21 @@
+{
+  "item.chaosledger.ledger_coin": "Ledger Coin",
+  "itemGroup.chaosledger.main": "ChaosLedger",
+  "cl.balance.title": "ChaosLedger — Balances",
+  "cl.help.header": "ChaosLedger commands:",
+  "cl.balance.self": "Your balance: %s %s",
+  "cl.pay.sent": "Sent %s %s to %s (tx #%s)",
+  "cl.pay.received": "Received %s %s from %s: %s",
+  "cl.transactions.empty": "No transactions yet.",
+  "cl.transactions.header": "Last %s transactions:",
+  "cl.quest.list.empty": "No quests defined.",
+  "cl.quest.list.header": "Quests (%s):",
+  "cl.quest.started": "Quest %s is now %s.",
+  "cl.quest.claimed": "Reward claimed for %s.",
+  "cl.admin.top.empty": "No accounts in %s yet.",
+  "cl.admin.top.header": "Top balances in %s:",
+  "cl.error.player_not_found": "Player not found: %s",
+  "cl.error.insufficient_funds": "Insufficient funds: %s < %s",
+  "cl.error.unknown_currency": "Unknown currency: %s",
+  "cl.error.unknown_quest": "Unknown quest: %s"
+}
