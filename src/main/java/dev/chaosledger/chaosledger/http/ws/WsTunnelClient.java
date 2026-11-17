@@ -22,6 +22,8 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -117,18 +119,63 @@ public final class WsTunnelClient {
     private void connect() {
         if (!running) return;
         URI uri;
+        boolean useTls;
         try {
-            uri = URI.create(config.wsUrl());
+            String raw = config.wsUrl() == null ? "" : config.wsUrl().trim();
+            if (raw.isEmpty()) {
+                // Misconfigured — log once and stop, otherwise we burn a CPU core
+                // spinning the reconnect loop every second for nothing.
+                LOGGER.error("[ChaosLedger-WS] wsUrl is empty. Set wsUrl (wss://bot-host/ws/chaosledger) in chaosledger.properties and restart. Stopping WS client.");
+                running = false;
+                return;
+            }
+            String normalised = normaliseScheme(raw);
+            useTls = normalised.startsWith("wss://");
+            uri = URI.create(normalised);
         } catch (IllegalArgumentException e) {
             LOGGER.error("[ChaosLedger-WS] Bad wsUrl '{}': {}", config.wsUrl(), e.getMessage());
+            running = false;
             return;
         }
         try {
             client = new ClientImpl(uri);
+            // java-websocket does NOT enable TLS on wss:// by itself — without an
+            // SSLSocketFactory the handshake fails with a generic "Closed code=-1".
+            if (useTls) {
+                client.setSocketFactory(buildTlsFactory());
+            }
             client.connect();
         } catch (Exception e) {
             LOGGER.warn("[ChaosLedger-WS] connect() failed: {}", e.getMessage());
             scheduleReconnect(0);
+        }
+    }
+
+    /**
+     * The {@code org.java_websocket} client only accepts {@code ws://} and
+     * {@code wss://}. Operators commonly paste the bot's panel URL (which uses
+     * {@code https://} or {@code http://}) into {@code wsUrl}, which makes
+     * {@code WebSocketClient} reject the connection with
+     * {@code "unknown scheme: https"} on every reconnect attempt. Translate the
+     * HTTP schemes to their WebSocket equivalents; leave {@code ws/wss} alone;
+     * reject anything else.
+     */
+    private static String normaliseScheme(String raw) {
+        String lower = raw.toLowerCase();
+        if (lower.startsWith("https://")) return "wss://" + raw.substring(8);
+        if (lower.startsWith("http://"))  return "ws://"  + raw.substring(7);
+        if (lower.startsWith("wss://") || lower.startsWith("ws://")) return raw;
+        throw new IllegalArgumentException(
+                "wsUrl must use ws://, wss://, http:// or https:// — got: " + raw);
+    }
+
+    private static SSLSocketFactory buildTlsFactory() {
+        try {
+            SSLContext ctx = SSLContext.getInstance("TLS");
+            ctx.init(null, null, null); // default trust store — verifies the bot's cert
+            return ctx.getSocketFactory();
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not init TLS for WS client: " + e.getMessage(), e);
         }
     }
 
