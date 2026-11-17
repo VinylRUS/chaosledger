@@ -3,7 +3,9 @@ package dev.chaosledger.chaosledger.item;
 import dev.chaosledger.chaosledger.economy.Money;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -26,13 +28,21 @@ public final class ModItems {
     private ModItems() {}
 
     public static final Identifier LEDGER_COIN_ID = Identifier.fromNamespaceAndPath("chaosledger", "ledger_coin");
+    public static final ResourceKey<Item> LEDGER_COIN_KEY =
+            ResourceKey.create(Registries.ITEM, LEDGER_COIN_ID);
     public static Item LEDGER_COIN;
 
     /** Register the items. Called by the Fabric entrypoint on the bootstrap phase. */
     public static void register() {
-        Item.Properties properties = new Item.Properties().stacksTo(64);
+        // 26.3 / 1.21.2+: the Item constructor reads the id off Item.Properties
+        // (effectiveDescriptionId -> itemIdOrThrow) and NPEs at runtime if it
+        // was not set via setId(ResourceKey<Item>) BEFORE construction. Setting
+        // it through Registry.register(...) after the fact is too late.
+        Item.Properties properties = new Item.Properties()
+                .stacksTo(64)
+                .setId(LEDGER_COIN_KEY);
         LEDGER_COIN = new Item(properties);
-        Registry.register(BuiltInRegistries.ITEM, LEDGER_COIN_ID, LEDGER_COIN);
+        Registry.register(BuiltInRegistries.ITEM, LEDGER_COIN_KEY, LEDGER_COIN);
 
         // Register the data components.
         Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,
