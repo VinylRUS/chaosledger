@@ -14,6 +14,7 @@ import dev.chaosledger.chaosledger.economy.MarketItem;
 import dev.chaosledger.chaosledger.economy.Transaction;
 import dev.chaosledger.chaosledger.http.dto.Dtos;
 import dev.chaosledger.chaosledger.quest.Quest;
+import dev.chaosledger.chaosledger.quest.QuestException;
 import dev.chaosledger.chaosledger.reward.RewardException;
 import dev.chaosledger.chaosledger.storage.StorageException;
 import org.java_websocket.client.WebSocketClient;
