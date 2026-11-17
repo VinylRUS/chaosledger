@@ -17,5 +17,14 @@
   "cl.error.player_not_found": "Player not found: %s",
   "cl.error.insufficient_funds": "Insufficient funds: %s < %s",
   "cl.error.unknown_currency": "Unknown currency: %s",
-  "cl.error.unknown_quest": "Unknown quest: %s"
+  "cl.error.unknown_quest": "Unknown quest: %s",
+
+  "cl.currency.copper.singular": "copper",
+  "cl.currency.copper.few": "copper",
+  "cl.currency.copper.many": "copper",
+  "cl.balance.self.copper": "Your balance: %s copper",
+  "cl.pay.sent.copper": "Sent %s copper to %s (tx #%s)",
+  "cl.pay.received.copper": "Received %s copper from %s: %s",
+  "cl.admin.top.empty.copper": "No copper balances yet.",
+  "cl.admin.top.header.copper": "Top copper balances:"
 }

@@ -60,6 +60,15 @@ dependencies {
     // SQLite JDBC driver - bundled inside the jar so the server does not need an external copy.
     implementation 'org.xerial:sqlite-jdbc:3.46.1.3'
     include 'org.xerial:sqlite-jdbc:3.46.1.3'
+
+    // v0.2.0: WebSocket reverse-tunnel client. The mod connects OUTBOUND to the
+    // bot's /ws/chaosledger endpoint so it works on shared Minecraft hosting
+    // (Exaroton/Aternos) where only the MC port (25565) is reachable from
+    // outside — inbound HTTP from the bot to the mod's HttpServer is blocked.
+    // Bundled inside the jar via `include` (Loom's jar-in-jar) so the server
+    // needs no external dependency.
+    implementation 'org.java-websocket:Java-WebSocket:1.5.7'
+    include 'org.java-websocket:Java-WebSocket:1.5.7'
 }
 
 tasks.withType(JavaCompile).configureEach {

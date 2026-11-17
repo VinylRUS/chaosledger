@@ -24,6 +24,19 @@ public final class ChaosLedgerConfig {
     private double priceMaxFactor   = 4.00d;
     private boolean allowNegativeBalance = false;
 
+    // --- v0.2.0: WebSocket reverse-tunnel (mod → bot outbound) ----------------
+    // See WS_TUNNEL_PROTOCOL.md. Disabled by default so existing installs are
+    // unaffected; the bot panel turns it on by setting `wsUrl` + `wsBotToken`
+    // in chaosledger.properties (the operator copies these from /adminpanel).
+    private boolean wsEnabled            = false;
+    private String  wsUrl               = "";          // wss://bot-host/ws/chaosledger
+    private String  wsBotToken          = "";          // shared secret, mirrors CL_WS_TOKEN in bot DB
+    private String  wsServerId          = "";          // human label, e.g. "dibilki"
+    private int     wsSnapshotIntervalSec = 10;
+    private int     wsReconnectMinMs    = 1000;
+    private int     wsReconnectMaxMs    = 30000;
+    private int     wsRequestTimeoutMs  = 5000;
+
     public ChaosLedgerConfig() {}
 
     public ChaosLedgerConfig loadFrom(Properties props) {
@@ -39,6 +52,15 @@ public final class ChaosLedgerConfig {
         priceMinFactor        = parse(props.getProperty("priceMinFactor"),        priceMinFactor);
         priceMaxFactor        = parse(props.getProperty("priceMaxFactor"),        priceMaxFactor);
         allowNegativeBalance  = Boolean.parseBoolean(props.getProperty("allowNegativeBalance", String.valueOf(allowNegativeBalance)));
+        // v0.2.0: WebSocket reverse-tunnel fields.
+        wsEnabled             = Boolean.parseBoolean(props.getProperty("wsEnabled", String.valueOf(wsEnabled)));
+        wsUrl                 = props.getProperty("wsUrl", wsUrl);
+        wsBotToken            = props.getProperty("wsBotToken", wsBotToken);
+        wsServerId            = props.getProperty("wsServerId", wsServerId);
+        wsSnapshotIntervalSec = (int) parse(props.getProperty("wsSnapshotIntervalSec"), wsSnapshotIntervalSec);
+        wsReconnectMinMs      = (int) parse(props.getProperty("wsReconnectMinMs"),    wsReconnectMinMs);
+        wsReconnectMaxMs      = (int) parse(props.getProperty("wsReconnectMaxMs"),    wsReconnectMaxMs);
+        wsRequestTimeoutMs    = (int) parse(props.getProperty("wsRequestTimeoutMs"),  wsRequestTimeoutMs);
         return this;
     }
 
@@ -55,6 +77,14 @@ public final class ChaosLedgerConfig {
         p.setProperty("priceMinFactor",     Double.toString(priceMinFactor));
         p.setProperty("priceMaxFactor",     Double.toString(priceMaxFactor));
         p.setProperty("allowNegativeBalance", Boolean.toString(allowNegativeBalance));
+        p.setProperty("wsEnabled",            Boolean.toString(wsEnabled));
+        p.setProperty("wsUrl",                wsUrl);
+        p.setProperty("wsBotToken",           wsBotToken);
+        p.setProperty("wsServerId",            wsServerId);
+        p.setProperty("wsSnapshotIntervalSec", Integer.toString(wsSnapshotIntervalSec));
+        p.setProperty("wsReconnectMinMs",      Integer.toString(wsReconnectMinMs));
+        p.setProperty("wsReconnectMaxMs",      Integer.toString(wsReconnectMaxMs));
+        p.setProperty("wsRequestTimeoutMs",    Integer.toString(wsRequestTimeoutMs));
         return p;
     }
 
@@ -75,6 +105,16 @@ public final class ChaosLedgerConfig {
     public double priceMaxFactor()       { return priceMaxFactor; }
     public boolean allowNegativeBalance(){ return allowNegativeBalance; }
 
+    // v0.2.0: WebSocket reverse-tunnel.
+    public boolean wsEnabled()            { return wsEnabled; }
+    public String  wsUrl()               { return wsUrl; }
+    public String  wsBotToken()          { return wsBotToken; }
+    public String  wsServerId()          { return wsServerId; }
+    public int     wsSnapshotIntervalSec(){ return wsSnapshotIntervalSec; }
+    public int     wsReconnectMinMs()    { return wsReconnectMinMs; }
+    public int     wsReconnectMaxMs()    { return wsReconnectMaxMs; }
+    public int     wsRequestTimeoutMs()  { return wsRequestTimeoutMs; }
+
     public ChaosLedgerConfig setDefaultCurrency(String v)     { this.defaultCurrency = v; return this; }
     public ChaosLedgerConfig setStartingBalance(double v)     { this.startingBalance = v; return this; }
     public ChaosLedgerConfig setDatabaseFile(Path v)          { this.databaseFile = v; return this; }
@@ -86,4 +126,14 @@ public final class ChaosLedgerConfig {
     public ChaosLedgerConfig setPriceMinFactor(double v)      { this.priceMinFactor = v; return this; }
     public ChaosLedgerConfig setPriceMaxFactor(double v)      { this.priceMaxFactor = v; return this; }
     public ChaosLedgerConfig setAllowNegativeBalance(boolean v){ this.allowNegativeBalance = v; return this; }
+
+    // v0.2.0: WebSocket reverse-tunnel.
+    public ChaosLedgerConfig setWsEnabled(boolean v)         { this.wsEnabled = v; return this; }
+    public ChaosLedgerConfig setWsUrl(String v)              { this.wsUrl = v; return this; }
+    public ChaosLedgerConfig setWsBotToken(String v)         { this.wsBotToken = v; return this; }
+    public ChaosLedgerConfig setWsServerId(String v)         { this.wsServerId = v; return this; }
+    public ChaosLedgerConfig setWsSnapshotIntervalSec(int v){ this.wsSnapshotIntervalSec = v; return this; }
+    public ChaosLedgerConfig setWsReconnectMinMs(int v)     { this.wsReconnectMinMs = v; return this; }
+    public ChaosLedgerConfig setWsReconnectMaxMs(int v)     { this.wsReconnectMaxMs = v; return this; }
+    public ChaosLedgerConfig setWsRequestTimeoutMs(int v)   { this.wsRequestTimeoutMs = v; return this; }
 }

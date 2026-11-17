@@ -17,5 +17,14 @@
   "cl.error.player_not_found": "Игрок не найден: %s",
   "cl.error.insufficient_funds": "Недостаточно средств: %s < %s",
   "cl.error.unknown_currency": "Неизвестная валюта: %s",
-  "cl.error.unknown_quest": "Неизвестный квест: %s"
+  "cl.error.unknown_quest": "Неизвестный квест: %s",
+
+  "cl.currency.copper.singular": "медяк",
+  "cl.currency.copper.few": "медяка",
+  "cl.currency.copper.many": "медяков",
+  "cl.balance.self.copper": "Ваш баланс: %s",
+  "cl.pay.sent.copper": "Отправлено %s игроку %s (транзакция #%s)",
+  "cl.pay.received.copper": "Получено %s от %s: %s",
+  "cl.admin.top.empty.copper": "Медяков пока ни у кого нет.",
+  "cl.admin.top.header.copper": "Топ балансов в медяках:"
 }

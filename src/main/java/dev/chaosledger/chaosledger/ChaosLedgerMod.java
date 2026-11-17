@@ -28,10 +28,11 @@ import java.util.Properties;
 public final class ChaosLedgerMod implements ModInitializer {
 
     public static final String MOD_ID = "chaosledger";
-    public static final String MOD_VERSION = "0.1.0";
+    public static final String MOD_VERSION = "0.2.0";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     private static HttpApiServer httpApi;
+    private static dev.chaosledger.chaosledger.http.ws.WsTunnelClient wsTunnel;
 
     @Override
     public void onInitialize() {
@@ -64,9 +65,24 @@ public final class ChaosLedgerMod implements ModInitializer {
                 LOGGER.error("[ChaosLedger] Failed to start HTTP API", e);
             }
         }
+
+        // v0.2.0: start the WebSocket reverse-tunnel if enabled. On Exaroton-style
+        // shared hosting this is the only transport the bot can reach — the HTTP
+        // API above listens on localhost and is unreachable from outside.
+        try {
+            wsTunnel = new dev.chaosledger.chaosledger.http.ws.WsTunnelClient(
+                    config, new dev.chaosledger.chaosledger.http.ws.WsDispatcherImpl(httpApi));
+            wsTunnel.start();
+        } catch (Exception e) {
+            LOGGER.error("[ChaosLedger] Failed to start WS reverse-tunnel", e);
+        }
     }
 
     private void onServerStopping(MinecraftServer server) {
+        if (wsTunnel != null) {
+            try { wsTunnel.stop(); } catch (Exception ignored) {}
+            wsTunnel = null;
+        }
         if (httpApi != null) {
             httpApi.stop();
             httpApi = null;

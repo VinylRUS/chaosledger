@@ -64,11 +64,15 @@ public final class ChaosLedgerServices implements AutoCloseable {
         this.questEngine = new QuestEngine(quests, progress, rewardEngine, audit);
 
         // Seed the default currency if missing.
+        // v0.2.0: default currency is the Russian «медяк» (copper coin). Code stays
+        // "CC" so existing worlds keep their balances; only the display name and the
+        // short symbol change. See MoneyFormat for proper Russian pluralisation
+        // (медяк / медяка / медяков) used in chat.
         if (currencies.findByCode(config.defaultCurrency()).isEmpty()) {
             currencies.save(new dev.chaosledger.chaosledger.economy.Currency(
                     config.defaultCurrency(),
-                    "Coins",
-                    config.defaultCurrency(),
+                    "медяк",
+                    "м.",
                     config.startingBalance()));
         }
     }
