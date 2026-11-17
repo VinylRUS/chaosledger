@@ -9,6 +9,7 @@ import dev.chaosledger.chaosledger.ChaosLedger;
 import dev.chaosledger.chaosledger.economy.Account;
 import dev.chaosledger.chaosledger.economy.EconomyException;
 import dev.chaosledger.chaosledger.economy.Money;
+import dev.chaosledger.chaosledger.economy.MoneyFormat;
 import dev.chaosledger.chaosledger.economy.Transaction;
 import dev.chaosledger.chaosledger.quest.QuestException;
 import dev.chaosledger.chaosledger.quest.QuestProgress;
@@ -109,6 +110,21 @@ public final class ChaosLedgerCommands {
         return ChaosLedger.config().defaultCurrency();
     }
 
+    /**
+     * Render a money amount for chat. The default currency («медяк», code CC)
+     * is pluralised in Russian (медяк / медяка / медяков) via {@link MoneyFormat}.
+     * Any other currency falls back to {@code "<amount> <code>"} so custom
+     * currencies operators add later keep working.
+     */
+    private static String fmtMoney(Money m) {
+        if (m.currency().equalsIgnoreCase(defaultCurrency())) {
+            return MoneyFormat.copper(m.amount());
+        }
+        double a = m.amount();
+        String num = (a == Math.floor(a)) ? Long.toString((long) a) : Double.toString(a);
+        return num + " " + m.currency();
+    }
+
     // ----- Economy -----
 
     private static int balance(CommandContext<CommandSourceStack> ctx, String currency) throws CommandSyntaxException {
@@ -118,7 +134,7 @@ public final class ChaosLedgerCommands {
         String name = player.getName().getString();
         try {
             Account a = ChaosLedger.services().economy().accountOf(uuid, name, currency);
-            src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Balance: §e" + a.balance().amount() + " " + a.balance().currency()), false);
+            src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Balance: §e" + fmtMoney(a.balance())), false);
             return 1;
         } catch (EconomyException e) {
             src.sendFailure(Component.literal("§c[ChaosLedger] " + e.getMessage()));
@@ -142,9 +158,9 @@ public final class ChaosLedgerCommands {
                     sender.getUUID(), sender.getName().getString(),
                     target.getUUID(), target.getName().getString(),
                     currency, money, reason);
-            src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Sent §e" + money.amount() + " " + money.currency()
+            src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Sent §e" + fmtMoney(money)
                     + "§r to §b" + targetName + "§r (tx #" + tx.id() + ")"), false);
-            target.sendSystemMessage(Component.literal("§6[ChaosLedger]§r Received §e" + money.amount() + " " + money.currency()
+            target.sendSystemMessage(Component.literal("§6[ChaosLedger]§r Received §e" + fmtMoney(money)
                     + "§r from §b" + src.getTextName() + "§r: " + reason));
             return 1;
         } catch (EconomyException e) {
@@ -169,7 +185,7 @@ public final class ChaosLedgerCommands {
                     ? (t.toUuid().isPresent() ? shortUuid(t.toUuid().get()) : "server")
                     : (t.fromUuid().isPresent() ? shortUuid(t.fromUuid().get()) : "server");
             src.sendSuccess(() -> Component.literal(" §7#" + t.id() + " " + dir
-                    + t.amount().amount() + " " + t.amount().currency()
+                    + fmtMoney(t.amount())
                     + " §7" + t.category() + " §8" + counterparty + " — " + t.reason()), false);
         }
         return 1;
@@ -255,7 +271,7 @@ public final class ChaosLedgerCommands {
             Money money = new Money(amount, currency);
             Transaction tx = ChaosLedger.services().economy().grant(
                     target.getUUID(), target.getName().getString(), currency, money, reason);
-            src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Granted §e" + money.amount() + " " + money.currency()
+            src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Granted §e" + fmtMoney(money)
                     + "§r to §b" + targetName + "§r (tx #" + tx.id() + ")"), true);
             return 1;
         } catch (EconomyException e) {
@@ -277,7 +293,7 @@ public final class ChaosLedgerCommands {
             Money money = new Money(amount, currency);
             Transaction tx = ChaosLedger.services().economy().charge(
                     target.getUUID(), target.getName().getString(), currency, money, reason, "ADMIN");
-            src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Charged §e" + money.amount() + " " + money.currency()
+            src.sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Charged §e" + fmtMoney(money)
                     + "§r from §b" + targetName + "§r (tx #" + tx.id() + ")"), true);
             return 1;
         } catch (EconomyException e) {
@@ -289,15 +305,17 @@ public final class ChaosLedgerCommands {
     private static int adminTop(CommandContext<CommandSourceStack> ctx, String currency, int limit) {
         var top = ChaosLedger.services().economy().top(currency, limit);
         if (top.isEmpty()) {
-            ctx.getSource().sendSuccess(() -> Component.literal("§7[ChaosLedger] No accounts in " + currency + " yet."), false);
+            String label = currency.equalsIgnoreCase(defaultCurrency()) ? MoneyFormat.COPPER_MANY : currency;
+            ctx.getSource().sendSuccess(() -> Component.literal("§7[ChaosLedger] No accounts in " + label + " yet."), false);
             return 1;
         }
-        ctx.getSource().sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Top balances in §e" + currency + "§r:"), false);
+        String headLabel = currency.equalsIgnoreCase(defaultCurrency()) ? MoneyFormat.COPPER_MANY : currency;
+        ctx.getSource().sendSuccess(() -> Component.literal("§6[ChaosLedger]§r Top balances in §e" + headLabel + "§r:"), false);
         int rank = 1;
         for (Account a : top) {
             final int r = rank++;
             ctx.getSource().sendSuccess(() -> Component.literal(" §e#" + r + "§r §b" + a.ownerName()
-                    + "§r — " + a.balance().amount() + " " + a.balance().currency()), false);
+                    + "§r — " + fmtMoney(a.balance())), false);
         }
         return 1;
     }

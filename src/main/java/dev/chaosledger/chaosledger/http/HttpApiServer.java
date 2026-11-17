@@ -82,6 +82,23 @@ public final class HttpApiServer {
         executor = null;
     }
 
+    /**
+     * The single-thread executor that serialises all engine writes.
+     *
+     * <p>v0.2.0: exposed so the WebSocket reverse-tunnel client can dispatch
+     * bot commands on the <em>same</em> thread the HTTP handlers use. The
+     * engines are not internally synchronised — they rely on this executor
+     * being single-threaded to keep writes atomic. When the WS client submits
+     * a command here, it lands in the same queue as HTTP POSTs and is executed
+     * strictly in order, after any in-flight HTTP request.</p>
+     *
+     * <p>Returns {@code null} if the server is stopped (so the WS dispatcher
+     * falls back to its own single-thread executor).</p>
+     */
+    public synchronized Executor executor() {
+        return executor;
+    }
+
     public List<String> routes() {
         return List.of(
                 "GET    /api/health",
